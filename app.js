@@ -7,10 +7,10 @@ var DATA = require('./lib/database'),
 //TODO : Add timestamp
 
 wowApi.query('grim-batol',function(err,body) {
-  if(!err && body && body.realm) {
-    console.log(body.realm);
-    console.log(body.auctions.auctions.length);
-    database.insertDump(body.auctions.auctions,'now!', function(err, results) {
+  if(!err && body && body.results && body.results.realm) {
+    console.log(body.results.realm);
+    console.log(body.results.auctions.auctions.length);
+    database.insertDump(body.results.auctions.auctions, body.timestamp, function(err, results) {
       if(err)
         console.log(err);
       logger.log(0, 'Dump was inserted without error');

@@ -24,8 +24,8 @@ function query(server, count, callback) {
         logger.log(0, 'Gave up trying to get data for : ' + server);
     }
   });
-
-  query('grim-batol',0,function(err, results) {
-    
-  });
 }
+
+query('grim-batol',0,function(err, results) {
+
+});

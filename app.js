@@ -4,8 +4,6 @@ var DATA = require('./lib/database'),
   wowApi = new API(),
   logger = require('./logger');
 
-//TODO : Add timestamp
-
 wowApi.query('grim-batol',function(err,body) {
   if(!err && body && body.results && body.results.realm) {
     console.log(body.results.realm);
@@ -14,6 +12,7 @@ wowApi.query('grim-batol',function(err,body) {
       if(err)
         console.log(err);
       logger.log(0, 'Dump was inserted without error');
+      database.close();
     });
   }
   else {

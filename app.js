@@ -25,9 +25,11 @@ function query(server, count, callback) {
     }
   });
 }
-
-query('grim-batol',0,function(err, results) {
-  database.count('grim-batol',function(err,count) {
-    logger.log(1,'Grim Batol has : ' + count);
+setInterval(function grim() {
+  query('grim-batol',0,function(err, results) {
+    database.count('grim-batol',function(err,count) {
+      logger.log(1,'Grim Batol has : ' + count);
+    });
   });
-});
+  return grim;
+}(),1000*60*30);

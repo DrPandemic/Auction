@@ -1,5 +1,6 @@
 var DATA = require('./lib/database'),
-  database = new DATA(),
+  servers = ['grim-batol'],
+  database = new DATA(servers),
   API = require('./lib/wow-api'),
   wowApi = new API(),
   logger = require('./logger'),
@@ -24,7 +25,7 @@ function query(server, count, callback) {
         logger.log(0, 'Gave up trying to get data for : ' + server);
     }
   });
-}
+};
 setInterval(function grim() {
   query('grim-batol',0,function(err, results) {
     database.count('grim-batol',function(err,count) {

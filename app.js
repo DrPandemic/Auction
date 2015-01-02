@@ -9,9 +9,8 @@ wowApi.query('grim-batol',function(err,body) {
     console.log(body.results.realm);
     console.log(body.results.auctions.auctions.length);
     database.insertDump(body.results.auctions.auctions, body.timestamp, function(err, results) {
-      if(err)
-        console.log(err);
-      logger.log(0, 'Dump was inserted without error');
+      //Doesn't test for error, because it will always have errors due to duplicate
+      logger.log(0, 'Dump was inserted');
       database.close();
     });
   }

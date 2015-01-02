@@ -27,5 +27,7 @@ function query(server, count, callback) {
 }
 
 query('grim-batol',0,function(err, results) {
-
+  database.count('grim-batol',function(err,count) {
+    logger.log(1,'Grim Batol has : ' + count);
+  });
 });

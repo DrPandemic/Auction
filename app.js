@@ -1,10 +1,36 @@
+/*
+TODO :
+ Create a last-dump table to get track of the current auctions
+*/
+
 var DATA = require('./lib/database'),
   servers = ['grim-batol'],
-  database = new DATA(servers),
+  database = new DATA(servers, ready),
   API = require('./lib/wow-api'),
   wowApi = new API(),
   logger = require('./logger'),
   maxTry = 10;
+
+
+function ready(err){
+  if(err) {
+    console.log(err);
+    return;
+  }
+  /*setInterval(function grim() {
+    query('grim-batol',0,function(err, results) {
+      database.count('grim-batol',function(err,count) {
+        logger.log(1,'Grim Batol has : ' + count);
+      });
+    });
+    return grim;
+  }(),1000*60*30);*/
+
+  database.getSalesOccurence('GrimBatol', function(err, results) {
+    console.log(err);
+    console.log(results);
+  });
+}
 
 function query(server, count, callback) {
   wowApi.query(server,function(err,body) {
@@ -25,14 +51,4 @@ function query(server, count, callback) {
         logger.log(0, 'Gave up trying to get data for : ' + server);
     }
   });
-};
-setInterval(function grim() {
-  query('grim-batol',0,function(err, results) {
-    database.count('grim-batol',function(err,count) {
-      logger.log(1,'Grim Batol has : ' + count);
-    });
-  });
-  return grim;
-}(),1000*60*30);
-
-//TODO : fct like insert => be able to choose the collection
+}

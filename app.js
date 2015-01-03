@@ -26,7 +26,7 @@ function ready(err){
     return grim;
   }(),1000*60*30);*/
 
-  database.getSalesOccurence('GrimBatol', function(err, results) {
+  database.getSalesValueBuyout('GrimBatol', function(err, results) {
     console.log(err);
     console.log(results);
   });

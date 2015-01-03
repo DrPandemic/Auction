@@ -34,3 +34,5 @@ setInterval(function grim() {
   });
   return grim;
 }(),1000*60*30);
+
+//TODO : fct like insert => be able to choose the collection

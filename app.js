@@ -4,8 +4,8 @@ TODO :
 */
 
 var DATA = require('./lib/database'),
-  servers = ['grim-batol'],
-  database = new DATA(servers, ready),
+  servers = [],
+  database = new DATA(ready),
   API = require('./lib/wow-api'),
   wowApi = new API(),
   logger = require('./logger'),
@@ -17,19 +17,23 @@ function ready(err){
     console.log(err);
     return;
   }
-  /*setInterval(function grim() {
-    query('grim-batol',0,function(err, results) {
-      database.count('grim-batol',function(err,count) {
-        logger.log(1,'Grim Batol has : ' + count);
+  servers = database.servers();
+
+  setInterval(function callServers() {
+    servers.forEach(function(server){
+      query(server.slug,0,function(err, results) {
+        database.count(server.slug,function(err,count) {
+          logger.log(1,server.name+' has : ' + count);
+          database.getSalesOccurence(server.name, function(err, results) {
+            console.log('The most present item for ' + server.name + ' is : ');
+            console.log(results[0]);
+          });
+        });
       });
     });
-    return grim;
-  }(),1000*60*30);*/
+    return callServers;
+  }(),1000*60*30);
 
-  database.getSalesValueBuyout('GrimBatol', function(err, results) {
-    console.log(err);
-    console.log(results);
-  });
 }
 
 function query(server, count, callback) {

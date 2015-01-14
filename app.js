@@ -9,7 +9,28 @@ var DATA = require('./lib/database'),
   API = require('./lib/wow-api'),
   wowApi = new API(),
   logger = require('./logger'),
-  maxTry = 10;
+  maxTry = 10,
+  WOWDB = require('./lib/wow-db'),
+  wowDB = new WOWDB(database, wowApi);
+
+function queryServers() {
+    servers = database.servers();
+
+    setInterval(function callServers() {
+      servers.forEach(function(server){
+        query(server.slug,0,function(err, results) {
+          database.count(server.slug,function(err,count) {
+            logger.log(1,server.name+' has : ' + count);
+            database.getSalesOccurence(server.name, function(err, results) {
+              console.log('The most present item for ' + server.name + ' is : ');
+              console.log(results[0]);
+            });
+          });
+        });
+      });
+      return callServers;
+    }(),1000*60*30);
+}
 
 
 function ready(err){
@@ -17,22 +38,10 @@ function ready(err){
     console.log(err);
     return;
   }
-  servers = database.servers();
 
-  setInterval(function callServers() {
-    servers.forEach(function(server){
-      query(server.slug,0,function(err, results) {
-        database.count(server.slug,function(err,count) {
-          logger.log(1,server.name+' has : ' + count);
-          database.getSalesOccurence(server.name, function(err, results) {
-            console.log('The most present item for ' + server.name + ' is : ');
-            console.log(results[0]);
-          });
-        });
-      });
-    });
-    return callServers;
-  }(),1000*60*30);
+  database.containItem(18803,function(err, item){
+    console.log(item);
+  });
 
 }
 

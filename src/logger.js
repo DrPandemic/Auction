@@ -1,3 +1,5 @@
+"use strict";
+
 var settings = function() {};
 
 settings.prototype.verbose = 2;

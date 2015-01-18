@@ -1,3 +1,5 @@
+"use strict";
+
 /*
 TODO :
  Create a last-dump table to get track of the current auctions

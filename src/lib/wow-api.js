@@ -1,3 +1,5 @@
+"use strict";
+
 var wowApi = function() {
   var Client = require('node-rest-client').Client,
   key = require('../key')(),

@@ -1,3 +1,5 @@
+"use strict";
+
 var wowDB = function(db, wowApi) {
   this.getItem = function(objectID, callback) {
 

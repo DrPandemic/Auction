@@ -1,10 +1,14 @@
+"use strict";
+
 var dataProcess = function(callback) {
   var mongoClient = require('mongodb').MongoClient,
     logger = require('../logger'),
-    mongoDb = null;
+    mongoDb = null,
     async = require('async'),
     self = this,
     servers = [];
+
+  this.servers = servers;
 
   mongoClient.connect("mongodb://localhost:27017/wow", function(err, db) {
     logger.log(0,'Connecting to MongoDB');
@@ -145,13 +149,21 @@ var dataProcess = function(callback) {
   };
 
   this.containItem = function(itemID, callback) {
+    this.findItem(itemID, function(err, res) {
+      if(err)
+        callback(err, null);
+      else
+        callback(null, res ? true : false);
+    });
+  };
+  this.findItem = function(itemID, callback) {
     ensureDB(callback,function() {
       var collection = self.mongoDb.collection('items');
       collection.findOne({id:itemID},function(err, item){
         if(err)
           callback(err, null);
         else
-          callback(null, item ? true : false);
+          callback(null, item);
       });
     });
   };
@@ -196,7 +208,7 @@ dataProcess.prototype.getSalesValueBid = function(server, callback) {
     callback);
 };
 dataProcess.prototype.servers = function(){
-  return servers;
+  return this.servers;
 };
 
 dataProcess.prototype.containItem = function(itemID, callback) {

@@ -18,7 +18,7 @@
     "should": "^4.6.0"
   },
   "scripts": {
-    "test": "jshint src/*.js src/lib/*.js test/*.js & node_modules/.bin/mocha"
+    "test": "jshint src/*.js src/lib/*.js & node_modules/.bin/mocha"
   },
   "author": "DrPandemic",
   "license": "MIT"

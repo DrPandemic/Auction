@@ -78,7 +78,7 @@ var dataProcess = function(callback) {
       callback(err);
     });
   }
-  function ensureDB(err,callback) {
+  this.ensureDB = function(err,callback) {
     if(!self.mongoDb) {
       logger.log(0,"There was an error with the DB connection");
       err("There was an error with the DB connection", null);
@@ -86,7 +86,7 @@ var dataProcess = function(callback) {
     }
     else
       callback();
-  }
+  };
 
   this.insert = function(document, callback) {
     if(!this.mongoDb) {
@@ -157,7 +157,7 @@ var dataProcess = function(callback) {
     });
   };
   this.findItem = function(itemID, callback) {
-    ensureDB(callback,function() {
+    this.ensureDB(callback,function() {
       var collection = self.mongoDb.collection('items');
       collection.findOne({id:itemID},function(err, item){
         if(err)
@@ -167,6 +167,13 @@ var dataProcess = function(callback) {
       });
     });
   };
+};
+dataProcess.prototype.connected = function(callback) {
+  this.ensureDB(function() {
+    callback(false);
+  },function() {
+    callback(true);
+  });
 };
 dataProcess.prototype.insert = function(document, callback) {
   this.insert(document,callback);

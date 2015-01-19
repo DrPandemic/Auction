@@ -1,7 +1,5 @@
 "use strict";
 
-
-
 var dataProcess = {},
   mongoClient = require('mongodb').MongoClient,
   logger = require('../logger'),
@@ -12,6 +10,34 @@ var dataProcess = {},
   servers = [];
 
   sorts.double = {};
+
+
+sorts.asc = function(a,b) {
+  return a.value - b.value;
+};
+sorts.double.asc = function(a,b) {
+  return a.value.value - b.value.value;
+};
+sorts.double.des = function(b,a) {
+  return a.value.value - b.value.value;
+};
+sorts.des = function(b,a) {
+  return a.value - b.value;
+};
+sorts.void = function(b,a) {
+  return false;
+};
+reducers.normal = function(key, values) {
+  return Array.sum(values);
+};
+reducers.double = function(key, values) {
+  var res = values[0];
+  for (var i = 1; i < values.length; ++i) {
+    ++res.amount;
+    res.value += values[i].value;
+  }
+  return res;
+};
 
 function ensureDB(err,callback) {
   if(!mongoDb) {
@@ -145,32 +171,6 @@ dataProcess.init = function(callback) {
 
 };
 
-sorts.asc = function(a,b) {
-  return a.value - b.value;
-};
-sorts.double.asc = function(a,b) {
-  return a.value.value - b.value.value;
-};
-sorts.double.des = function(b,a) {
-  return a.value.value - b.value.value;
-};
-sorts.des = function(b,a) {
-  return a.value - b.value;
-};
-sorts.void = function(b,a) {
-  return false;
-};
-reducers.normal = function(key, values) {
-  return Array.sum(values);
-};
-reducers.double = function(key, values) {
-  var res = values[0];
-  for (var i = 1; i < values.length; ++i) {
-    ++res.amount;
-    res.value += values[i].value;
-  }
-  return res;
-};
 
 dataProcess.connected = function(callback) {
   ensureDB(function() {

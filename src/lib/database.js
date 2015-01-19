@@ -1,14 +1,14 @@
 "use strict";
 
+
 var dataProcess = function(callback) {
   var mongoClient = require('mongodb').MongoClient,
     logger = require('../logger'),
     mongoDb = null,
     async = require('async'),
-    self = this,
-    servers = [];
+    self = this;
 
-  this.servers = servers;
+  this.servers = [];
 
   mongoClient.connect("mongodb://localhost:27017/wow", function(err, db) {
     logger.log(0,'Connecting to MongoDB');
@@ -61,8 +61,8 @@ var dataProcess = function(callback) {
         callback(err);
         return;
       }
-      console.log(items);
-      servers = items;
+      logger.log(1,items);
+      self.servers = items;
       ensureIndex(callback);
     });
   }
@@ -214,7 +214,7 @@ dataProcess.prototype.getSalesValueBid = function(server, callback) {
     this.sorts.asc,
     callback);
 };
-dataProcess.prototype.servers = function(){
+dataProcess.prototype.getServers = function(){
   return this.servers;
 };
 

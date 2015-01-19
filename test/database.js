@@ -1,15 +1,18 @@
 "use strict";
 
-var DATA = require('../src/lib/database'),
-  database = null,
+var rewire = require("rewire"),
   should = require('should'),
+  DATA = rewire('../src/lib/database'),
+  database = null,
   connErr = null;
+
 
 before(function(done){
   function ready(err) {
     connErr = err;
     done();
   }
+  console.log(DATA.init);
   database = new DATA(ready);
 });
 
@@ -26,5 +29,10 @@ describe('database', function () {
     });
   });
 
-  
+  it('should be rewired', function (done) {
+    var tmp = database.getServers();
+
+    tmp.should.eql(database.getServers());
+    done();
+  });
 });

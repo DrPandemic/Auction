@@ -16,7 +16,7 @@ var DATA = require('./lib/database'),
   wowDB = new WOWDB(database, wowApi);
 
 function queryServers() {
-    servers = database.servers();
+    servers = database.getServers();
 
     setInterval(function callServers() {
       servers.forEach(function(server){

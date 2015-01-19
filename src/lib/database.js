@@ -72,30 +72,30 @@ function ensureIndex(callback) {
 }
 
 function sum(server, mapper, reducer, sort, callback){
-  var options = {
-    query: {ownerRealm:server},
-    out: {inline:1}
-  };
-  var collection = mongoDb.collection('auction');
-  logger.log(1,'Starting map reduce');
+  ensureDB(callback,function() {
+    var options = {
+      query: {ownerRealm:server},
+      out: {inline:1}
+    };
+    var collection = mongoDb.collection('auction');
+    logger.log(1,'Starting map reduce');
 
-  collection.mapReduce(mapper, reducer, options, function(err, results) {
-    if(!err) {
-      results.sort(sort);
-      callback(err,results);
-    } else
-      callback(err,results);
+    collection.mapReduce(mapper, reducer, options, function(err, results) {
+      if(!err) {
+        results.sort(sort);
+        callback(err,results);
+      } else
+        callback(err,results);
+    });
   });
 }
 
 dataProcess.insert = function(document, callback) {
-  if(!mongoDb) {
-    callback("There was an error with the DB connection", null);
-    return;
-  }
-  var collection = mongoDb.collection('auction');
-  logger.log(1,'Inserting auction dump');
-  collection.insert(document, {continueOnError: true, safe: true, w:1}, callback);
+  ensureDB(callback,function() {
+    var collection = mongoDb.collection('auction');
+    logger.log(1,'Inserting...');
+    collection.insert(document, {continueOnError: true, safe: true, w:1}, callback);
+  });
 };
 
 
@@ -107,28 +107,26 @@ dataProcess.insertDump = function(document, timestamp, callback) {
   },function(err){
     if(err) {
       logger.log(0,'There was an error while adding timestamps ' + err);
+      callback('There was an error while adding timestamps ' + err, null);
       return;
     }
     dataProcess.insert(document,callback);
   });
 };
 
-dataProcess.close = function() {
-  if(!mongoDb) {
-    logger.log(0,'There was an error with the DB connection while trying to close the connection');
-    return;
-  }
-  logger.log(0,'Closing DB connection');
-  mongoDb.close();
+dataProcess.close = function(callback) {
+  ensureDB(callback,function() {
+    logger.log(0,'Closing DB connection');
+    mongoDb.close();
+    callback(null,null);
+  });
 };
 
 dataProcess.count = function(server, callback) {
-  if(!mongoDb) {
-    callback("There was an error with the DB connection", null);
-    return;
-  }
-  var collection = mongoDb.collection('auction');
-  collection.count(callback);
+  ensureDB(callback,function() {
+    var collection = mongoDb.collection('auction');
+    collection.count(callback);
+  });
 };
 
 dataProcess.containItem = function(itemID, callback) {
@@ -144,7 +142,7 @@ dataProcess.init = function(callback) {
   mongoClient.connect("mongodb://localhost:27017/wow", function(err, db) {
     logger.log(0,'Connecting to MongoDB');
     if(err) {
-      console.log(err);
+      logger.log(0,err);
       callback(err);
       return;
     }

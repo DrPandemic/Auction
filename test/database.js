@@ -3,6 +3,7 @@
 var rewire = require("rewire"),
   should = require('should'),
   sinon = require('sinon'),
+  async = require('async'),
   database = null,
   connErr = null;
 
@@ -10,10 +11,10 @@ var rewire = require("rewire"),
 before(function(done){
   function ready(err) {
     connErr = err;
-    database.__get__('logger').verbose = 0;
     done();
   }
   database = rewire('../src/lib/database');
+  database.__get__('logger').verbose = -1;
   database.init(ready);
 });
 
@@ -59,7 +60,7 @@ describe('database', function () {
     });
   });
 
-  it('should insert the document', function (done) {
+  it('should insert the array', function (done) {
     var mongo = database.__get__('mongoDb');
     mongo.should.be.ok;
 
@@ -78,4 +79,98 @@ describe('database', function () {
       done();
     });
   });
+
+  it('should insert the object', function (done) {
+    var mongo = database.__get__('mongoDb');
+    mongo.should.be.ok;
+
+    var collection = sinon.stub(mongo,'collection'),
+      newCollection = {},
+      insert = sinon.stub(),
+      doc = {wow:1};
+
+    insert.callsArg(2);
+    newCollection.insert = insert;
+    collection.withArgs('auction').returns(newCollection);
+
+    database.insert(doc,function(){
+      newCollection.insert.calledWith(doc).should.be.true;
+      database.__get__('mongoDb').collection.restore();
+      done();
+    });
+  });
+
+  it('should test connection before every method calls', function (done) {
+    var mongo = database.__get__('mongoDb'),
+      str = "There was an error with the DB connection";
+    database.__set__('mongoDb', null);
+
+    async.series([
+      function(cb){
+        database.insert([],function(err, doc) {
+          should(err).be.eql(str);
+          should(doc).not.be.ok;
+          cb();
+        });
+      },
+      function(cb){
+        database.insertDump([],0,function(err, doc) {
+          should(err).be.eql(str);
+          should(doc).not.be.ok;
+          cb();
+        });
+      },
+      function(cb){
+        database.close(function(err, doc) {
+          should(err).be.eql(str);
+          should(doc).not.be.ok;
+          cb();
+        });
+      },
+      function(cb){
+        database.count('some',function(err, doc) {
+          should(err).be.eql(str);
+          should(doc).not.be.ok;
+          cb();
+        });
+      },
+      function(cb){
+        database.containItem('some',function(err, doc) {
+          should(err).be.eql(str);
+          should(doc).not.be.ok;
+          cb();
+        });
+      },
+      function(cb){
+        database.getSalesOccurence('some',function(err, doc) {
+          should(err).be.eql(str);
+          should(doc).not.be.ok;
+          cb();
+        });
+      },
+      function(cb){
+        database.getSalesValueBuyout('some',function(err, doc) {
+          should(err).be.eql(str);
+          should(doc).not.be.ok;
+          cb();
+        });
+      },
+      function(cb){
+        database.getSalesValueBid('some',function(err, doc) {
+          should(err).be.eql(str);
+          should(doc).not.be.ok;
+          cb();
+        });
+      }
+    ],function(err, results) {
+      should(err).not.be.ok;
+      should(results).be.ok;
+
+      database.__set__('mongoDb', mongo);
+      done();
+    });
+
+
+  });
+
 });

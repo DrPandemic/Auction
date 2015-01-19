@@ -2,7 +2,6 @@
 
 var rewire = require("rewire"),
   should = require('should'),
-  DATA = rewire('../src/lib/database'),
   database = null,
   connErr = null;
 
@@ -12,8 +11,8 @@ before(function(done){
     connErr = err;
     done();
   }
-  console.log(DATA.init);
-  database = new DATA(ready);
+  database = rewire('../src/lib/database');
+  database.init(ready);
 });
 
 describe('database', function () {
@@ -31,8 +30,8 @@ describe('database', function () {
 
   it('should be rewired', function (done) {
     var tmp = database.getServers();
-
-    tmp.should.eql(database.getServers());
+    database.__set__('servers', []);
+    tmp.should.not.eql(database.getServers());
     done();
   });
 });

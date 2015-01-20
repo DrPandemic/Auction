@@ -54,7 +54,7 @@ describe('database', function () {
     collection.withArgs('auction').returns(newCollection);
 
     database.insert({test:'test'},function(){
-      collection.called.should.be.true;
+      collection.calledWith('auction').should.be.true;
       database.__get__('mongoDb').collection.restore();
       done();
     });
@@ -173,4 +173,57 @@ describe('database', function () {
 
   });
 
+  it('insert dump should not fail whitout an array', function (done) {
+    var mongo = database.__get__('mongoDb');
+    mongo.should.be.ok;
+
+    var collection = sinon.stub(mongo,'collection'),
+      newCollection = {},
+      insert = sinon.stub(),
+      doc = {wow:1};
+
+    insert.callsArg(2);
+    newCollection.insert = insert;
+    collection.withArgs('auction').returns(newCollection);
+
+    database.insertDump(doc,0,function(){
+      newCollection.insert.called.should.be.true;
+      database.__get__('mongoDb').collection.restore();
+      done();
+    });
+  });
+
+  it('insert dump should adds timestamp', function (done) {
+    var mongo = database.__get__('mongoDb');
+    mongo.should.be.ok;
+
+    var collection = sinon.stub(mongo,'collection'),
+      newCollection = {},
+      insert = sinon.stub(),
+      doc = [{wow:1},{test:2}];
+
+    insert.callsArg(2);
+    newCollection.insert = insert;
+    collection.withArgs('auction').returns(newCollection);
+
+    database.insertDump(doc,42,function(){
+      newCollection.insert.calledWith([{wow:1, timestamp:42},{test:2, timestamp:42}]).should.be.true;
+      database.__get__('mongoDb').collection.restore();
+      done();
+    });
+  });
+
+  it('close should call mongo connection close', function (done) {
+    var mongo = database.__get__('mongoDb');
+    mongo.should.be.ok;
+
+    var close = sinon.stub(mongo,'close');
+
+    database.close(function(err){
+      should(err).not.be.ok;
+      close.called.should.be.true;
+      database.__get__('mongoDb').close.restore();
+      done();
+    });
+  });
 });

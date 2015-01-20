@@ -5,6 +5,7 @@ var dataProcess = {},
   logger = require('../logger'),
   mongoDb = null,
   async = require('async'),
+  _ = require('underscore'),
   sorts = {},
   reducers = {},
   servers = [];
@@ -100,6 +101,8 @@ dataProcess.insert = function(document, callback) {
 
 
 dataProcess.insertDump = function(document, timestamp, callback) {
+  if(!_.isArray(document))
+    document = [document];
   //Add timestamp to every elements
   async.each(document, function(item, cb) {
     item.timestamp = timestamp;
@@ -169,7 +172,6 @@ dataProcess.init = function(callback) {
 
 };
 
-
 dataProcess.connected = function(callback) {
   ensureDB(function() {
     callback(false);
@@ -177,6 +179,7 @@ dataProcess.connected = function(callback) {
     callback(true);
   });
 };
+
 dataProcess.getSalesOccurence = function(server, callback) {
   sum(server,
     function(){
@@ -186,6 +189,7 @@ dataProcess.getSalesOccurence = function(server, callback) {
     sorts.des,
     callback);
 };
+
 dataProcess.getSalesValueBuyout = function(server, callback) {
   sum(server,
     function(){
@@ -195,6 +199,7 @@ dataProcess.getSalesValueBuyout = function(server, callback) {
     sorts.double.des,
     callback);
 };
+
 dataProcess.getSalesValueBid = function(server, callback) {
   sum(server,
     function(){
@@ -204,9 +209,9 @@ dataProcess.getSalesValueBid = function(server, callback) {
     sorts.asc,
     callback);
 };
+
 dataProcess.getServers = function(){
   return servers;
 };
-
 
 module.exports = dataProcess;

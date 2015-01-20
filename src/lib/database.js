@@ -99,7 +99,6 @@ dataProcess.insert = function(document, callback) {
   });
 };
 
-
 dataProcess.insertDump = function(document, timestamp, callback) {
   if(!_.isArray(document))
     document = [document];
@@ -126,7 +125,7 @@ dataProcess.close = function(callback) {
 };
 
 dataProcess.count = function(server, callback) {
-  ensureDB(callback,function() {
+  ensureDB(callback, function() {
     var collection = mongoDb.collection('auction');
     collection.count(callback);
   });

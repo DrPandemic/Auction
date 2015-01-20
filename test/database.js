@@ -226,4 +226,31 @@ describe('database', function () {
       done();
     });
   });
+
+  it('count should counts auction item', function (done) {
+    var mongo = database.__get__('mongoDb');
+    mongo.should.be.ok;
+
+    var collection = sinon.stub(mongo,'collection'),
+      newCollection = {},
+      count = sinon.stub();
+
+    count.callsArg(0);
+    newCollection.count = count;
+    collection.withArgs('auction').returns(newCollection);
+
+    database.count('grim-batol',function(err, doc) {
+      collection.calledWith('auction').should.be.true;
+      count.called.should.be.true;
+      database.__get__('mongoDb').collection.restore();
+      done();
+    });
+  });
+
+  it('count should counts for a given server', function (done) {
+    true.should.not.be.ok;
+    done();
+  });
+
+
 });

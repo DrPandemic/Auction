@@ -49,17 +49,7 @@ function ensureDB(err,callback) {
   else
     callback();
 }
-function findItem(itemID, callback) {
-  ensureDB(callback,function() {
-    var collection = mongoDb.collection('items');
-    collection.findOne({id:itemID},function(err, item){
-      if(err)
-        callback(err, null);
-      else
-        callback(null, item);
-    });
-  });
-}
+
 function ensureIndex(callback) {
   var collection = mongoDb.collection('auction');
   //Add unioque index
@@ -131,8 +121,20 @@ dataProcess.count = function(server, callback) {
   });
 };
 
+dataProcess.findItem = function(itemID, callback) {
+  ensureDB(callback,function() {
+    var collection = mongoDb.collection('items');
+    collection.findOne({id:itemID},function(err, item){
+      if(err)
+        callback(err, null);
+      else
+        callback(null, item);
+    });
+  });
+};
+
 dataProcess.containItem = function(itemID, callback) {
-  findItem(itemID, function(err, res) {
+  dataProcess.findItem(itemID, function(err, res) {
     if(err)
       callback(err, null);
     else

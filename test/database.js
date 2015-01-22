@@ -272,5 +272,25 @@ describe('database', function () {
     });
   });
 
+  it('find item construct a correct query object', function (done) {
+    var mongo = database.__get__('mongoDb');
+    mongo.should.be.ok;
+
+    var collection = sinon.stub(mongo,'collection'),
+      newCollection = {},
+      findOne = sinon.stub(),
+      id = 'foo';
+
+    findOne.callsArg(1);
+    newCollection.findOne = findOne;
+    collection.withArgs('items').returns(newCollection);
+
+    database.findItem(id,function(err, doc) {
+      findOne.calledWith({id:id}).should.be.true;
+      database.__get__('mongoDb').collection.restore();
+      done();
+    });
+  });
+
 
 });

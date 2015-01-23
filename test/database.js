@@ -1,9 +1,14 @@
 "use strict";
 
+/*
+ TODO : mock to be able to pass test without an actual DB
+*/
+
 var rewire = require("rewire"),
   should = require('should'),
   sinon = require('sinon'),
   async = require('async'),
+  _ = require('underscore'),
   database = null,
   connErr = null;
 
@@ -11,11 +16,17 @@ var rewire = require("rewire"),
 before(function(done){
   function ready(err) {
     connErr = err;
+
     done();
   }
   database = rewire('../src/lib/database');
   database.__get__('logger').verbose = -1;
   database.init(ready);
+});
+
+after(function(done){
+
+  done();
 });
 
 describe('database', function () {
@@ -29,16 +40,6 @@ describe('database', function () {
       conn.should.be.true;
       done();
     });
-  });
-
-  //That was only to test the rewire mondule
-  it('should be rewired', function (done) {
-    var tmp = database.getServers();
-    database.__set__('servers', []);
-    tmp.should.not.eql(database.getServers());
-    database.__set__('servers', tmp);
-    tmp.should.eql(database.getServers());
-    done();
   });
 
   it('should use a collection', function (done) {
@@ -252,27 +253,7 @@ describe('database', function () {
     done();
   });
 
-  it('find item should look in item collection', function (done) {
-    var mongo = database.__get__('mongoDb');
-    mongo.should.be.ok;
-
-    var collection = sinon.stub(mongo,'collection'),
-      newCollection = {},
-      findOne = sinon.stub();
-
-    findOne.callsArg(1);
-    newCollection.findOne = findOne;
-    collection.withArgs('items').returns(newCollection);
-
-    database.findItem('foo',function(err, doc) {
-      collection.calledWith('items').should.be.true;
-      findOne.called.should.be.true;
-      database.__get__('mongoDb').collection.restore();
-      done();
-    });
-  });
-
-  it('find item construct a correct query object', function (done) {
+  it('find item, on error, only returns an error object', function (done) {
     var mongo = database.__get__('mongoDb');
     mongo.should.be.ok;
 
@@ -281,16 +262,92 @@ describe('database', function () {
       findOne = sinon.stub(),
       id = 'foo';
 
-    findOne.callsArg(1);
+    findOne.callsArgWithAsync(1,'foo bar error');
     newCollection.findOne = findOne;
     collection.withArgs('items').returns(newCollection);
 
     database.findItem(id,function(err, doc) {
-      findOne.calledWith({id:id}).should.be.true;
+      should(err).should.exist;
+      should(doc).should.not.exist;
       database.__get__('mongoDb').collection.restore();
       done();
     });
   });
 
+  it('find item, on success, doesn\'t return an error, but returns the item', function (done) {
+    var mongo = database.__get__('mongoDb');
+    mongo.should.be.ok;
+
+    var collection = sinon.stub(mongo,'collection'),
+      newCollection = {},
+      findOne = sinon.stub(),
+      id = 'foo',
+      obj = {foo:'bar'};
+
+    findOne.callsArgWithAsync(1,null,obj);
+    newCollection.findOne = findOne;
+    collection.withArgs('items').returns(newCollection);
+
+    database.findItem(id,function(err, doc) {
+      should(err).should.not.exist;
+      should(doc).should.exist;
+      database.__get__('mongoDb').collection.restore();
+      done();
+    });
+  });
+
+  it('contain item, on error, only returns an error object', function (done) {
+    var mongo = database.__get__('mongoDb');
+    mongo.should.be.ok;
+
+    var collection = sinon.stub(mongo,'collection'),
+      newCollection = {},
+      findOne = sinon.stub(),
+      id = 'foo';
+
+    findOne.callsArgWithAsync(1,'foo bar error');
+    newCollection.findOne = findOne;
+    collection.withArgs('items').returns(newCollection);
+
+    database.containItem(id,function(err, doc) {
+      should(err).should.exist;
+      should(doc).should.not.exist;
+      database.__get__('mongoDb').collection.restore();
+      done();
+    });
+  });
+
+  it('contain item, on success, doesn\'t return an error, but returns a bool', function (done) {
+    var mongo = database.__get__('mongoDb');
+    mongo.should.be.ok;
+
+    var collection = sinon.stub(mongo,'collection'),
+      newCollection = {},
+      findOne = sinon.stub(),
+      id = 'foo',
+      obj = {foo:'bar'};
+
+    findOne.callsArgWithAsync(1,null,obj);
+    newCollection.findOne = findOne;
+    collection.withArgs('items').returns(newCollection);
+
+    database.containItem(id,function(err, doc) {
+      should(err).should.not.exist;
+      (_.isBoolean(doc)).should.be.true;
+
+      //tests when the object is not found
+      obj=null;
+      findOne.callsArgWithAsync(1,null,obj);
+      newCollection.findOne = findOne;
+      collection.withArgs('items').returns(newCollection);
+
+      database.containItem(id,function(err, doc) {
+        should(err).should.not.exist;
+        (_.isBoolean(doc)).should.be.true;
+        database.__get__('mongoDb').collection.restore();
+        done();
+      });
+    });
+  });
 
 });

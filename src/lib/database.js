@@ -125,7 +125,7 @@ dataProcess.findItem = function(itemID, callback) {
   ensureDB(callback,function() {
     var collection = mongoDb.collection('items');
     collection.findOne({id:itemID},function(err, item){
-      if(err)
+      if(err || !item)
         callback(err, null);
       else
         callback(null, item);

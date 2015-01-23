@@ -1,9 +1,5 @@
 "use strict";
 
-/*
- TODO : mock to be able to pass test without an actual DB
-*/
-
 var rewire = require("rewire"),
   should = require('should'),
   sinon = require('sinon'),
@@ -22,11 +18,6 @@ before(function(done){
   database = rewire('../src/lib/database');
   database.__get__('logger').verbose = -1;
   database.init(ready);
-});
-
-after(function(done){
-
-  done();
 });
 
 describe('database', function () {
@@ -350,4 +341,20 @@ describe('database', function () {
     });
   });
 
+  it('connected should always return a bool', function (done) {
+    database.connected(function(res) {
+      (_.isBoolean(res)).should.be.true;
+
+      var mongo = database.__get__('mongoDb');
+      mongo.should.be.ok;
+
+      database.__set__('mongoDb',null);
+
+      database.connected(function(res) {
+        (_.isBoolean(res)).should.be.true;
+        database.__set__('mongoDb',mongo);
+        done();
+      });
+    });
+  });
 });

@@ -5,15 +5,15 @@ TODO :
  Create a last-dump table to get track of the current auctions
 */
 
-var DATA = require('./lib/database'),
+var database = require('./lib/database'),
   servers = [],
-  database = new DATA(ready),
-  API = require('./lib/wow-api'),
-  wowApi = new API(),
+  wowApi = require('./lib/wow-api'),
   logger = require('./logger'),
   maxTry = 10,
   WOWDB = require('./lib/wow-db'),
   wowDB = new WOWDB(database, wowApi);
+
+database.init(ready);
 
 function queryServers() {
     servers = database.getServers();
@@ -40,6 +40,10 @@ function ready(err){
     console.log(err);
     return;
   }
+
+  wowApi.getItem(18803,function(err, item){
+    console.log(item.name);
+  });
 
   database.containItem(18803,function(err, item){
     console.log(item);

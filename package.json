@@ -21,7 +21,9 @@
     "sinon": "^1.12.2"
   },
   "scripts": {
-    "test": "jshint src/*.js src/lib/*.js & node_modules/.bin/mocha"
+    "test": "jshint src/*.js src/lib/*.js & node_modules/.bin/mocha",
+    "start": "node src/auction.js",
+    "start-test": "node-theseus src/auction.js"
   },
   "author": "DrPandemic",
   "license": "MIT"

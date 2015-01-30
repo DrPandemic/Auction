@@ -143,6 +143,7 @@ dataProcess.containItem = function(itemID, callback) {
 };
 
 dataProcess.insertItem = function(item, callback) {
+  dataProcess.insert(item, 'items', callback);
 };
 
 dataProcess.init = function(callback) {

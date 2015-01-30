@@ -22,7 +22,7 @@ wowDB.init = function(api,db) {
 wowDB.getItem = function(itemID, callback) {
   ensureState(callback, function() {
     //Tests if the DB has it
-    database.getItem(itemID,function(err, item){
+    database.getItem(itemID,function(err, item) {
       if(err) callback(err,null);
       //Already present
       else if(item) callback(null, item);
@@ -35,7 +35,7 @@ wowDB.getItem = function(itemID, callback) {
             database.insertItem(item, function(err, res) {
               if(err) logger.log(1,'There was an error while inserting an item');
             });
-            callback(null, item);
+           callback(null, item);
           }
         });
       }

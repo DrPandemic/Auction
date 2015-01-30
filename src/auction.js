@@ -13,7 +13,7 @@ var database = require('./lib/database'),
   wowDB = require('./lib/wow-db');
 
 
-wowDB.init(database, wowApi);
+wowDB.init(wowApi, database);
 database.init(ready);
 
 function queryServers() {
@@ -42,7 +42,7 @@ function ready(err){
     return;
   }
 
-  wowDB.getItem(18803,function(err, item){
+  wowDB.getItem(18723,function(err, item){
     console.log(item.name);
   });
 

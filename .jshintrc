@@ -2,5 +2,6 @@
    "globalstrict": true,
    "mocha": true,
    "node": true,
-   "couch": true
+   "couch": true,
+   "expr": true
 }

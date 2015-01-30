@@ -45,7 +45,7 @@ describe('database', function () {
     newCollection.insert = insert;
     collection.withArgs('auction').returns(newCollection);
 
-    database.insert({test:'test'},function(){
+    database.insert({test:'test'},'auction',function(){
       collection.calledWith('auction').should.be.true;
       database.__get__('mongoDb').collection.restore();
       done();
@@ -65,7 +65,7 @@ describe('database', function () {
     newCollection.insert = insert;
     collection.withArgs('auction').returns(newCollection);
 
-    database.insert(doc,function(){
+    database.insert(doc,'auction',function(){
       newCollection.insert.calledWith(doc).should.be.true;
       database.__get__('mongoDb').collection.restore();
       done();
@@ -85,7 +85,7 @@ describe('database', function () {
     newCollection.insert = insert;
     collection.withArgs('auction').returns(newCollection);
 
-    database.insert(doc,function(){
+    database.insert(doc,'auction',function(){
       newCollection.insert.calledWith(doc).should.be.true;
       database.__get__('mongoDb').collection.restore();
       done();
@@ -99,7 +99,7 @@ describe('database', function () {
 
     async.series([
       function(cb){
-        database.insert([],function(err, doc) {
+        database.insert([],'',function(err, doc) {
           should(err).be.eql(str);
           should(doc).not.be.ok;
           cb();
@@ -257,7 +257,7 @@ describe('database', function () {
     newCollection.findOne = findOne;
     collection.withArgs('items').returns(newCollection);
 
-    database.findItem(id,function(err, doc) {
+    database.getItem(id,function(err, doc) {
       should(err).should.exist;
       should(doc).should.not.exist;
       database.__get__('mongoDb').collection.restore();
@@ -279,7 +279,7 @@ describe('database', function () {
     newCollection.findOne = findOne;
     collection.withArgs('items').returns(newCollection);
 
-    database.findItem(id,function(err, doc) {
+    database.getItem(id,function(err, doc) {
       should(err).should.not.exist;
       should(doc).should.exist;
       database.__get__('mongoDb').collection.restore();
@@ -339,6 +339,11 @@ describe('database', function () {
         done();
       });
     });
+  });
+
+  it('contain item, on success, doesn\'t return an error, but returns a bool', function (done) {
+    true.should.not.be.ok;
+    done();
   });
 
   it('connected should always return a bool', function (done) {

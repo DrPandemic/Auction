@@ -81,9 +81,9 @@ function sum(server, mapper, reducer, sort, callback){
   });
 }
 
-dataProcess.insert = function(document, callback) {
+dataProcess.insert = function(document, collectionName, callback) {
   ensureDB(callback,function() {
-    var collection = mongoDb.collection('auction');
+    var collection = mongoDb.collection(collectionName);
     logger.log(1,'Inserting...');
     collection.insert(document, {continueOnError: true, safe: true, w:1}, callback);
   });
@@ -102,7 +102,7 @@ dataProcess.insertDump = function(document, timestamp, callback) {
       callback('There was an error while adding timestamps ' + err, null);
       return;
     }
-    dataProcess.insert(document,callback);
+    dataProcess.insert(document,'auction', callback);
   });
 };
 
@@ -121,7 +121,7 @@ dataProcess.count = function(server, callback) {
   });
 };
 
-dataProcess.findItem = function(itemID, callback) {
+dataProcess.getItem = function(itemID, callback) {
   ensureDB(callback,function() {
     var collection = mongoDb.collection('items');
     collection.findOne({id:itemID},function(err, item){
@@ -134,12 +134,15 @@ dataProcess.findItem = function(itemID, callback) {
 };
 
 dataProcess.containItem = function(itemID, callback) {
-  dataProcess.findItem(itemID, function(err, res) {
+  dataProcess.getItem(itemID, function(err, res) {
     if(err)
       callback(err, null);
     else
       callback(null, res ? true : false);
   });
+};
+
+dataProcess.insertItem = function(item, callback) {
 };
 
 dataProcess.init = function(callback) {

@@ -10,9 +10,10 @@ var database = require('./lib/database'),
   wowApi = require('./lib/wow-api'),
   logger = require('./logger'),
   maxTry = 10,
-  WOWDB = require('./lib/wow-db'),
-  wowDB = new WOWDB(database, wowApi);
+  wowDB = require('./lib/wow-db');
 
+
+wowDB.init(database, wowApi);
 database.init(ready);
 
 function queryServers() {
@@ -41,12 +42,8 @@ function ready(err){
     return;
   }
 
-  wowApi.getItem(18803,function(err, item){
+  wowDB.getItem(18803,function(err, item){
     console.log(item.name);
-  });
-
-  database.containItem(18803,function(err, item){
-    console.log(item);
   });
 
 }

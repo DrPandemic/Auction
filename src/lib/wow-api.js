@@ -18,14 +18,14 @@ var Client = require('node-rest-client').Client,
   wowApi = {};
 
 //Fetch the auction dump
-function get_data(source, timestamp, callback) {
+function getData(source, timestamp, callback) {
   options.url = source;
 
   logger.log(1,'Sended request to fetch auction dump for ' + source);
 
   request(options, function (error, response, body) {
     logger.log(0,'Received auction dump');
-    if(response.statusCode == 200 && !error){
+    if(response.statusCode === 200 && !error){
       callback(null,{timestamp: timestamp, results : body});
     } else {
       callback(error,body);
@@ -39,7 +39,7 @@ wowApi.queryApi = function(server, callback) {
   client.get(auction_url+server+query,function(data, response){
     logger.log(1,'Received an anwser from wow api');
     if(data && data.files && data.files[0])
-      get_data(data.files[0].url, data.files[0].lastModified, callback);
+      getData(data.files[0].url, data.files[0].lastModified, callback);
     else
       callback('Problem with the API answer. Status code : '+response.statusCode, null);
   });

@@ -368,4 +368,13 @@ describe('database', function () {
       });
     });
   });
+
+  it('pushItemQueue should try to add the item in mongo', function (done) {
+    true.should.not.be.ok;
+    done();
+  });
+  it('popItemQueue should return an object from the queue', function (done) {
+    true.should.not.be.ok;
+    done();
+  });
 });

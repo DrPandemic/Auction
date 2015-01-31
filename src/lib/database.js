@@ -1,14 +1,16 @@
 "use strict";
 
 var dataProcess = {},
-  mongoClient = require('mongodb').MongoClient,
-  logger = require('../logger'),
-  mongoDb = null,
-  async = require('async'),
-  _ = require('underscore'),
-  sorts = {},
-  reducers = {},
-  servers = [];
+    mongoClient = require('mongodb').MongoClient,
+    logger = require('../logger'),
+    mongoDb = null,
+    async = require('async'),
+    _ = require('underscore'),
+    sorts = {},
+    reducers = {},
+    servers = [],
+    tQueueItem = 'itemQueue';
+
 
   sorts.double = {};
 
@@ -64,8 +66,17 @@ function ensureIndex(callback) {
       if(err)
         logger.log(-1,err);
       else
-        logger.log(1,'Unique index for auction id was added : '+res);
-      callback(err);
+        logger.log(1,'Unique index for item id was added : '+res);
+
+      var collection = mongoDb.collection(tQueueItem);
+      collection.ensureIndex({id : 1},{ unique: true },function(err,res) {
+        if(err)
+          logger.log(-1,err);
+        else
+          logger.log(1,'Unique index for item queue id was added : '+res);
+        //That's stupid, because I loose the other errors
+        callback(err);
+      });
     });
   });
 }
@@ -99,7 +110,6 @@ dataProcess.insert = function(document, collectionName, callback) {
 
 dataProcess.insertDump = function(document, timestamp, callback) {
   ensureDB(callback,function() {
-
     if(!_.isArray(document))
       document = [document];
     var collection = mongoDb.collection('auction');
@@ -112,6 +122,11 @@ dataProcess.insertDump = function(document, timestamp, callback) {
       callback(err);
     });
   });
+};
+
+dataProcess.pushItemQueue = function(item, callback) {
+};
+dataProcess.popItemQueue = function(item, callback) {
 };
 
 dataProcess.close = function(callback) {

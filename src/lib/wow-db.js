@@ -31,7 +31,7 @@ wowDB.getItem = function(itemID, callback) {
         wowApi.getItem(itemID, function(err, item) {
           if(err || !item) callback(err, null);
           else {
-            //Cool we have a new item, let's save it
+            //Cool, we have a new item, let's save it
             database.insertItem(item, function(err, res) {
               if(err) logger.log(1,'There was an error while inserting an item');
             });

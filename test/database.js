@@ -132,6 +132,12 @@ describe('database', function () {
           should(doc).not.be.ok;
           cb();
         });
+      },function(cb){
+        database.insertItem('some',function(err, doc) {
+          should(err).be.eql(str);
+          should(doc).not.be.ok;
+          cb();
+        });
       },
       function(cb){
         database.getSalesOccurence('some',function(err, doc) {
@@ -324,7 +330,7 @@ describe('database', function () {
 
     database.containItem(id,function(err, doc) {
       should(err).should.not.exist;
-      (_.isBoolean(doc)).should.be.true;
+       (_.isBoolean(doc)).should.be.true;
 
       //tests when the object is not found
       obj=null;
@@ -341,7 +347,7 @@ describe('database', function () {
     });
   });
 
-  it('contain item, on success, doesn\'t return an error, but returns a bool', function (done) {
+  it('should do a mock to see if the DB receive the insert', function (done) {
     true.should.not.be.ok;
     done();
   });

@@ -16,6 +16,9 @@ var database = require('./lib/database'),
 wowDB.init(wowApi, database);
 database.init(ready);
 
+/*
+TODO: Try to change this for promise
+*/
 function queryServers() {
     servers = database.getServers();
 
@@ -25,8 +28,13 @@ function queryServers() {
           database.count(server.slug,function(err,count) {
             logger.log(1,server.name+' has : ' + count);
             database.getSalesOccurence(server.name, function(err, results) {
-              console.log('The most present item for ' + server.name + ' is : ');
-              console.log(results[0]);
+              wowDB.getItem(results[0]._id,function(err,res) {
+                if(!err) {
+                  console.log('The most present item for ' + server.name + ' is : ');
+                  console.log(res.name);
+                } else
+                  console.log('An error occured with the most object present object');
+              });
             });
           });
         });
@@ -41,11 +49,7 @@ function ready(err){
     console.log(err);
     return;
   }
-
-  wowDB.getItem(18723,function(err, item){
-    console.log(item.name);
-  });
-
+  queryServers();
 }
 
 function query(server, count, callback) {

@@ -53,12 +53,20 @@ function ensureDB(err,callback) {
 function ensureIndex(callback) {
   var collection = mongoDb.collection('auction');
   //Add unioque index
-  collection.ensureIndex({'auc' : 1, 'ownerRealm' : 1},{ unique: true },function(err,res) {
+  collection.ensureIndex({auc : 1, ownerRealm : 1, timestamp : 1},{ unique: true },function(err,res) {
     if(err)
       logger.log(-1,err);
     else
       logger.log(1,'Unique index for auction id was added : '+res);
-    callback(err);
+    var collection = mongoDb.collection('items');
+    //Add unioque index
+    collection.ensureIndex({id : 1},{ unique: true },function(err,res) {
+      if(err)
+        logger.log(-1,err);
+      else
+        logger.log(1,'Unique index for auction id was added : '+res);
+      callback(err);
+    });
   });
 }
 
@@ -143,7 +151,9 @@ dataProcess.containItem = function(itemID, callback) {
 };
 
 dataProcess.insertItem = function(item, callback) {
-  dataProcess.insert(item, 'items', callback);
+  ensureDB(callback,function() {
+    dataProcess.insert(item, 'items', callback);
+  });
 };
 
 dataProcess.init = function(callback) {
@@ -173,8 +183,6 @@ dataProcess.init = function(callback) {
       ensureIndex(callback);
     });
   }
-
-
 };
 
 dataProcess.connected = function(callback) {

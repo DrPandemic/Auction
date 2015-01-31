@@ -1,4 +1,5 @@
 "use strict";
+
 var Client = require('node-rest-client').Client,
   key = require('../key')(),
   logger = require('../logger'),
@@ -44,11 +45,11 @@ wowApi.queryApi = function(server, callback) {
   });
 };
 
-wowApi.getItem = function(objectID, callback) {
-  logger.log(1,'Sent request to wow item api for ' + objectID);
-  client.get(item_url+objectID+query,function(data, response){
-    logger.log(1,'Received an anwser from wow api');
-    if(data)
+wowApi.getItem = function(itemID, callback) {
+  logger.log(1,'Sent request to wow item api for ' + itemID);
+  client.get(item_url+itemID+query,function(data, response){
+    logger.log(1,'Received an anwser from wow api for the item : '+itemID);
+    if(data && response.statusCode === 200)
       callback(null, data);
     else
       callback('Problem with the API answer. Status code : '+response.statusCode, null);

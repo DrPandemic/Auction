@@ -23,6 +23,7 @@
   "scripts": {
     "test": "jshint src/*.js src/lib/*.js & node_modules/.bin/mocha",
     "start": "node src/auction.js",
+    "crawler": "node src/crawler.js",
     "start-test": "node-theseus src/auction.js"
   },
   "author": "DrPandemic",

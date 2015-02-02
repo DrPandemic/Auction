@@ -21,10 +21,10 @@ var Client = require('node-rest-client').Client,
 function getData(source, timestamp, callback) {
   options.url = source;
 
-  logger.log(1,'Sended request to fetch auction dump for ' + source);
+  logger.log(2,'Sended request to fetch auction dump for ' + source);
 
   request(options, function (error, response, body) {
-    logger.log(0,'Received auction dump');
+    logger.log(1,'Received auction dump');
     if(response.statusCode === 200 && !error){
       callback(null,{timestamp: timestamp, results : body});
     } else {
@@ -35,9 +35,9 @@ function getData(source, timestamp, callback) {
 
 
 wowApi.queryApi = function(server, callback) {
-  logger.log(1,'Sent request to wow auction api for ' + server);
+  logger.log(2,'Sent request to wow auction api for ' + server);
   client.get(auction_url+server+query,function(data, response){
-    logger.log(1,'Received an anwser from wow api');
+    logger.log(1,'Received an anwser from wow api for ' + server);
     if(data && data.files && data.files[0])
       getData(data.files[0].url, data.files[0].lastModified, callback);
     else
@@ -46,7 +46,7 @@ wowApi.queryApi = function(server, callback) {
 };
 
 wowApi.getItem = function(itemID, callback) {
-  logger.log(1,'Sent request to wow item api for ' + itemID);
+  logger.log(2,'Sent request to wow item api for ' + itemID);
   client.get(item_url+itemID+query,function(data, response){
     logger.log(1,'Received an anwser from wow api for the item : '+itemID);
     if(data && response.statusCode === 200)

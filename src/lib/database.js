@@ -193,7 +193,7 @@ dataProcess.init = function(callback) {
         callback(err);
         return;
       }
-      logger.log(1,items);
+      logger.log(2,items);
       servers = items;
       ensureIndex(callback);
     });

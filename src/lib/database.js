@@ -9,7 +9,9 @@ var dataProcess = {},
     sorts = {},
     reducers = {},
     servers = [],
-    tQueueItem = 'itemQueue';
+    tQueueItem = 'itemQueue',
+    Promise = require('bluebird');
+
 
 
   sorts.double = {};
@@ -42,40 +44,45 @@ reducers.double = function(key, values) {
   return res;
 };
 
-function ensureDB(err,callback) {
-  if(!mongoDb) {
-    logger.log(0,"There was an error with the DB connection");
-    err("There was an error with the DB connection", null);
-    return;
-  }
-  else
-    callback();
+function ensureDB() {
+  return new Promise(function(resolve, reject) {
+    if(!mongoDb)
+      reject(new Error("There was an error with the DB connection"));
+    else
+      resolve();
+  });
 }
 
-function ensureIndex(callback) {
-  var collection = mongoDb.collection('auction');
-  //Add unioque index
-  collection.ensureIndex({auc : 1, ownerRealm : 1, timestamp : 1},{ unique: true },function(err,res) {
-    if(err)
-      logger.log(-1,err);
-    else
-      logger.log(1,'Unique index for auction id was added : '+res);
-    var collection = mongoDb.collection('items');
-    //Add unioque index
-    collection.ensureIndex({id : 1},{ unique: true },function(err,res) {
-      if(err)
-        logger.log(-1,err);
+function ensureIndex() {
+  return new Promise(function(resolve, reject) {
+    var collection = mongoDb.collection('auction');
+    collection.ensureIndex({auc : 1, ownerRealm : 1, timestamp : 1},{ unique: true }, function(err,res) {
+      if(err) {
+        reject(new Error(error));
+        return;
+      }
       else
-        logger.log(1,'Unique index for item id was added : '+res);
-
-      var collection = mongoDb.collection(tQueueItem);
-      collection.ensureIndex({id : 1},{ unique: true },function(err,res) {
-        if(err)
-          logger.log(-1,err);
+        logger.log(1,'Unique index for auction id was added : '+res);
+      collection = mongoDb.collection('items');
+      //Add unique index
+      collection.ensureIndex({id : 1},{ unique: true }, function(err,res) {
+        if(err) {
+          reject(new Error(err));
+          return;
+        }
         else
-          logger.log(1,'Unique index for item queue id was added : '+res);
-        //That's stupid, because I loose the other errors
-        callback(err);
+          logger.log(1,'Unique index for item id was added : '+res);
+
+        collection = mongoDb.collection(tQueueItem);
+        collection.ensureIndex({id : 1},{ unique: true }, function(err,res) {
+          if(err) {
+            reject(new Error(err));
+            return;
+          }
+          else
+            logger.log(1,'Unique index for item queue id was added : '+res);
+          resolve();
+        });
       });
     });
   });
@@ -100,30 +107,28 @@ function sum(server, mapper, reducer, sort, callback){
   });
 }
 
-dataProcess.insert = function(document, collectionName, callback) {
-  ensureDB(callback,function() {
+dataProcess.insert = function(document, collectionName) {
+  return ensureDB().then(new Promise(function(resolve, reject) {
     var collection = mongoDb.collection(collectionName);
     logger.log(1,'Inserting...');
-    collection.insert(document, {continueOnError: true, safe: true, w:1}, callback);
-  });
+    collection.insert(document, {continueOnError: true, safe: true, w:1}, function(err, result) {
+      //We ignore error, because duplicates will trigger errors
+      resolve();
+    });
+  }));
 };
 
-dataProcess.insertDump = function(document, timestamp, callback) {
+dataProcess.insertDump = function(document, timestamp) {
   var self = this;
-  ensureDB(callback,function() {
+  return ensureDB().then(new Promise(function(resolve, reject) {
     if(!_.isArray(document))
       document = [document];
     //Add timestamp to every elements
-    async.each(document, function(item, cb) {
+    document.forEach(function(item) {
       item.timestamp = timestamp;
-      cb();
-    },function(err) {
-      if(!err)
-        self.insert(document, 'auction', callback);
-      else
-        callback(err);
     });
-  });
+    return self.insert(document, 'auction');
+  }));
 };
 
 dataProcess.pushItemQueue = function(item, callback) {
@@ -173,32 +178,34 @@ dataProcess.insertItem = function(item, callback) {
   });
 };
 
-dataProcess.init = function(callback) {
-  mongoClient.connect("mongodb://localhost:27017/wow", function(err, db) {
-    logger.log(0,'Connecting to MongoDB');
-    if(err) {
-      logger.log(0,err);
-      callback(err);
-      return;
-    }
-    mongoDb = db;
-    initDB(callback);
-  });
+dataProcess.init = function() {
+  return new Promise(function(resolve, reject) {
+    mongoClient.connect("mongodb://localhost:27017/wow", function(err, db) {
+      logger.log(0,'Connecting to MongoDB');
+      if(err) {
+        reject(new Error(err));
+        return;
+      }
+      mongoDb = db;
+      resolve();
+    });
+  }).then(initDB);
 
   //Initializes the collection if it doesn't exists
   // Creates an unique index
-  function initDB(callback) {
-    var collection = mongoDb.collection('servers');
-    collection.find().toArray(function(err, items) {
-      if(err) {
-        logger.log(-1, 'There was an error while getting the server list');
-        callback(err);
-        return;
-      }
-      logger.log(2,items);
-      servers = items;
-      ensureIndex(callback);
-    });
+  function initDB() {
+    return new Promise(function(resolve, reject) {
+      var collection = mongoDb.collection('servers');
+      collection.find().toArray(function(err, items) {
+        if(err) {
+          reject(new Error('There was an error while getting the server list'));
+          return;
+        }
+        logger.log(2,items);
+        servers = items;
+        resolve();
+      });
+    }).then(ensureIndex);
   }
 };
 

@@ -16,7 +16,9 @@ var database = require('./lib/database'),
 
 
 wowDB.init(wowApi, database);
-database.init(ready);
+database.init().then(queryServers).catch(function(err) {
+  logger.log(0, err);
+});
 
 function queryServers() {
     servers = database.getServers();
@@ -46,15 +48,6 @@ function queryServers() {
     }(),1000*60*30);
 }
 
-
-function ready(err){
-  if(err) {
-    console.log(err);
-    return;
-  }
-  queryServers();
-}
-
 function query(server, count) {
   return new Promise(function(resolve, reject) {
     wowApi.query(server,function(err,body) {
@@ -62,6 +55,7 @@ function query(server, count) {
         logger.log(0,body.results.realm);
         logger.log(1,body.results.auctions.auctions.length);
         database.insertDump(body.results.auctions.auctions, body.timestamp, function(err, results) {
+          console.log('ok');
           //Doesn't test for errors, because it will always have some due to duplicates
           resolve(results);
         });
@@ -69,7 +63,7 @@ function query(server, count) {
       else {
         console.log('An error occured ' + err);
         if(count < maxTry)
-          return query(server, count + 1, callback);
+          return query(server, count + 1);
         else
           reject(new Error('Gave up trying to get data for : ' + server));
       }

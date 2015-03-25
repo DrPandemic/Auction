@@ -11,21 +11,19 @@ var database = require('./lib/database'),
   logger = require('./logger'),
   maxTry = 10,
   wowDB = require('./lib/wow-db'),
-  _ = require('underscore');
+  _ = require('underscore'),
+  Promise = require('bluebird');
 
 
 wowDB.init(wowApi, database);
 database.init(ready);
 
-/*
-TODO: Try to change this for promise
-*/
 function queryServers() {
     servers = database.getServers();
 
     setInterval(function callServers() {
-      servers.forEach(function(server){
-        query(server.slug,0,function(err, results) {
+      servers.forEach(function(server) {
+        query(server.slug,0).then(function(results) {
           database.count(server.slug,function(err,count) {
             logger.log(1,server.name+' has : ' + count);
             database.getSalesOccurence(server.name, function(err, results) {
@@ -39,6 +37,9 @@ function queryServers() {
                 });
             });
           });
+        }).catch(function(error){
+          logger.log(0,error.message);
+          logger.log(0,error.stack);
         });
       });
       return callServers;
@@ -54,23 +55,24 @@ function ready(err){
   queryServers();
 }
 
-function query(server, count, callback) {
-  wowApi.query(server,function(err,body) {
-    if(!err && body && body.results && body.results.realm) {
-      logger.log(0,body.results.realm);
-      logger.log(0,body.results.auctions.auctions.length);
-      database.insertDump(body.results.auctions.auctions, body.timestamp, function(err, results) {
-        //Doesn't test for errors, because it will always have some due to duplicates
-        logger.log(1, 'Dump was inserted');
-        callback(err, results);
-      });
-    }
-    else {
-      console.log('An error occured ' + err);
-      if(count < maxTry)
-        query(server, count + 1, callback);
-      else
-        logger.log(0, 'Gave up trying to get data for : ' + server);
-    }
+function query(server, count) {
+  return new Promise(function(resolve, reject) {
+    wowApi.query(server,function(err,body) {
+      if(!err && body && body.results && body.results.realm) {
+        logger.log(0,body.results.realm);
+        logger.log(1,body.results.auctions.auctions.length);
+        database.insertDump(body.results.auctions.auctions, body.timestamp, function(err, results) {
+          //Doesn't test for errors, because it will always have some due to duplicates
+          resolve(results);
+        });
+      }
+      else {
+        console.log('An error occured ' + err);
+        if(count < maxTry)
+          return query(server, count + 1, callback);
+        else
+          reject(new Error('Gave up trying to get data for : ' + server));
+      }
+    });
   });
 }

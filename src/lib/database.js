@@ -109,17 +109,19 @@ dataProcess.insert = function(document, collectionName, callback) {
 };
 
 dataProcess.insertDump = function(document, timestamp, callback) {
+  var self = this;
   ensureDB(callback,function() {
     if(!_.isArray(document))
       document = [document];
-    var collection = mongoDb.collection('auction');
     //Add timestamp to every elements
     async.each(document, function(item, cb) {
       item.timestamp = timestamp;
-      collection.update({auc : item.auc, ownerRealm : item.ownerRealm, timestamp : timestamp}, item, {upsert: true}, function() {});
       cb();
-    },function(err){
-      callback(err);
+    },function(err) {
+      if(!err)
+        self.insert(document, 'auction', callback);
+      else
+        callback(err);
     });
   });
 };

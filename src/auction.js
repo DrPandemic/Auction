@@ -2,7 +2,7 @@
 
 /*
 TODO :
- Create a last-dump table to get track of the current auctions
+  Finish DB transformation to promises
 */
 
 var database = require('./lib/database'),
@@ -12,7 +12,8 @@ var database = require('./lib/database'),
   maxTry = 10,
   wowDB = require('./lib/wow-db'),
   _ = require('underscore'),
-  Promise = require('bluebird');
+  Promise = require('bluebird'),
+  join = Promise.join;
 
 
 wowDB.init(wowApi, database);
@@ -25,19 +26,20 @@ function queryServers() {
 
     setInterval(function callServers() {
       servers.forEach(function(server) {
-        query(server.slug,0).then(function(results) {
-          database.count(server.slug,function(err,count) {
-            logger.log(1,server.name+' has : ' + count);
-            database.getSalesOccurence(server.name, function(err, results) {
-              if(!err && !_.isEmpty(results))
-                wowDB.getItem(results[0]._id,function(err,res) {
-                  if(!err) {
-                    console.log('The most present item for ' + server.name + ' is : ');
-                    console.log(res.name);
-                  } else
-                    console.log('An error occured with the object most present');
-                });
-            });
+        Promise.join(
+          query(server.slug,0),
+          database.count(server.slug),
+         function(results, count) {
+          logger.log(1,server.name+' has : ' + count);
+          database.getSalesOccurence(server.name, function(err, results) {
+            if(!err && !_.isEmpty(results))
+              wowDB.getItem(results[0]._id,function(err,res) {
+                if(!err) {
+                  console.log('The most present item for ' + server.name + ' is : ');
+                  console.log(res.name);
+                } else
+                  console.log('An error occured with the object most present');
+              });
           });
         }).catch(function(error){
           logger.log(0,error.message);
@@ -54,8 +56,8 @@ function query(server, count) {
       if(!err && body && body.results && body.results.realm) {
         logger.log(0,body.results.realm);
         logger.log(1,body.results.auctions.auctions.length);
-        database.insertDump(body.results.auctions.auctions, body.timestamp, function(err, results) {
-          console.log('ok');
+        database.insertDump(body.results.auctions.auctions, body.timestamp).then(
+         function(err, results) {
           //Doesn't test for errors, because it will always have some due to duplicates
           resolve(results);
         });

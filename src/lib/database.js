@@ -58,7 +58,7 @@ function ensureIndex() {
     var collection = mongoDb.collection('auction');
     collection.ensureIndex({auc : 1, ownerRealm : 1, timestamp : 1},{ unique: true }, function(err,res) {
       if(err) {
-        reject(new Error(error));
+        reject(new Error(err));
         return;
       }
       else
@@ -136,19 +136,24 @@ dataProcess.pushItemQueue = function(item, callback) {
 dataProcess.popItemQueue = function(item, callback) {
 };
 
-dataProcess.close = function(callback) {
-  ensureDB(callback,function() {
+dataProcess.close = function() {
+  ensureDB().then(function() {
     logger.log(0,'Closing DB connection');
     mongoDb.close();
-    callback(null,null);
+    return Promise.resolve();
   });
 };
 
-dataProcess.count = function(server, callback) {
-  ensureDB(callback, function() {
+dataProcess.count = function(server) {
+  return ensureDB().then(new Promise(function(resolve, reject) {
     var collection = mongoDb.collection('auction');
-    collection.count(callback);
-  });
+    collection.count(function(err,results) {
+      if(err)
+        reject(err);
+      else
+        resolve(results);
+    });
+  }));
 };
 
 dataProcess.getItem = function(itemID, callback) {

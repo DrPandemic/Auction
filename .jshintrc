@@ -1,7 +1,10 @@
 {
-   "globalstrict": true,
-   "mocha": true,
-   "node": true,
-   "couch": true,
-   "expr": true
+  "globalstrict": true,
+  "mocha": true,
+  "node": true,
+  "couch": true,
+  "expr": true,
+  "globals"      : {
+    "Promise"   : true
+  }
 }

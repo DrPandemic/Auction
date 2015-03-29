@@ -1,55 +1,70 @@
 "use strict";
 
+/*
+TODO :
+  Finish DB transformation to promises
+*/
+
 var database = require('./lib/database'),
-    servers = [],
-    wowApi = require('./lib/wow-api'),
-    logger = require('./logger'),
-    wowDB = require('./lib/wow-db'),
-    async = require('async'),
-    crawler = {},
-    maxTry = 5,
-    timing = 1000*60*30;
+  servers = [],
+  wowApi = require('./lib/wow-api'),
+  logger = require('./logger'),
+  maxTry = 10,
+  wowDB = require('./lib/wow-db'),
+  _ = require('underscore'),
+  Promise = require('bluebird'),
+  join = Promise.join;
 
-init();
 
-function init() {
-  database.init(function(err) {
-    if(err) {
-      logger.log(1,err);
-      return;
-    }
-    queryServers();
-  });
-}
+wowDB.init(wowApi, database);
+database.init().then(queryServers).catch(function(err) {
+  logger.log(0, err);
+});
+
 function queryServers() {
-  servers = database.getServers();
-  async.each(servers, function(server, cb) {
-    queryServer(server.slug,0,function(err) {
-      cb();
-    });
-  }, function(err) {
-    setTimeout(queryServers, timing);
-  });
-}
-function queryServer(server, count, callback) {
-  wowApi.query(server,function(err,body) {
-    if(!err && body && body.results && body.results.realm) {
-      database.insertDump(body.results.auctions.auctions, body.timestamp, function(err, results) {
-        //Doesn't test for errors, because it will always have some due to duplicates
-        logger.log(1,server + " was updated");
-        callback(err, results);
+    servers = database.getServers();
+
+    setInterval(function callServers() {
+      servers.forEach(function(server) {
+        var auctions = null;
+        query(server.slug,0).then(function(results) {
+          auctions = results;
+          return database.count(server.slug);
+        }).then(function(count) {
+          logger.log(1,server.name+' has : ' + count);
+          return database.getSalesOccurence(server.name);
+        }).then(function(sales) {
+          return wowDB.getItem(sales[0]._id);
+        }).then(function(item) {
+          logger.log(1,'The most present item for ' + server.name + ' is : ');
+          logger.log(1,item.name);
+          return Promise.resolve(item.name);
+        }).catch(function(error){
+          logger.log(0,error.message);
+          logger.log(0,error.stack);
+        });
       });
+      return callServers;
+    }(),1000*60*30);
+}
+
+function query(server, count) {
+  return wowApi.query(server)
+   .then(function(body) {
+    if(body && body.results && body.results.realm) {
+      logger.log(0,body.results.realm);
+      logger.log(1,body.results.auctions.auctions.length);
+      return database.insertDump(body.results.auctions.auctions, body.timestamp);
     }
     else {
+      console.log('The body is malformed');
       if(count < maxTry)
-        queryServer(server, count + 1, callback);
-      else {
-        var error = 'Gave up trying to get data for : ' + server;
-        logger.log(1, error);
-        callback(error, null);
-      }
+        return query(server, count + 1);
+      else
+        throw new Error('Gave up trying to get data for : ' + server);
     }
+  }).catch(function(error){
+    logger.log(0,error.message);
+    logger.log(0,error.stack);
   });
 }
-
-module.exports = crawler;

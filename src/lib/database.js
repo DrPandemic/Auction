@@ -88,47 +88,55 @@ function ensureIndex() {
   });
 }
 
-function sum(server, mapper, reducer, sort, callback){
-  ensureDB(callback,function() {
-    var options = {
-      query: {ownerRealm:server},
-      out: {inline:1}
-    };
-    var collection = mongoDb.collection('auction');
-    logger.log(1,'Starting map reduce');
+function sum(server, mapper, reducer, sort) {
+  var fn = function() {
+    return new Promise(function(resolve, reject) {
+      var options = {
+        query: {ownerRealm:server},
+        out: {inline:1}
+      };
+      var collection = mongoDb.collection('auction');
+      logger.log(1,'Starting map reduce');
 
-    collection.mapReduce(mapper, reducer, options, function(err, results) {
-      if(!err) {
-        results.sort(sort);
-        callback(err,results);
-      } else
-        callback(err,results);
-    });
-  });
+      collection.mapReduce(mapper, reducer, options, function(err, results) {
+        if(err)
+          reject(new Error(err));
+        else if(_.isEmpty(results))
+          reject(new Error('The result was empty'));
+        else {
+          results.sort(sort);
+          resolve(results);
+        }
+      });
+    })
+  };
+
+  return ensureDB().then(fn);
 }
 
 dataProcess.insert = function(document, collectionName) {
-  return ensureDB().then(new Promise(function(resolve, reject) {
-    var collection = mongoDb.collection(collectionName);
-    logger.log(1,'Inserting...');
-    collection.insert(document, {continueOnError: true, safe: true, w:1}, function(err, result) {
-      //We ignore error, because duplicates will trigger errors
-      resolve();
-    });
-  }));
+  var fn = function() {
+    return new Promise(function(resolve, reject) {
+      var collection = mongoDb.collection(collectionName);
+      logger.log(1, 'Inserting...');
+      collection.insert(document, {continueOnError: true, safe: true, w:1}, function(err, result) {
+        //We ignore error, because duplicates will trigger errors
+        resolve(document);
+      });
+    })
+  };
+
+  return ensureDB().then(fn);
 };
 
 dataProcess.insertDump = function(document, timestamp) {
-  var self = this;
-  return ensureDB().then(new Promise(function(resolve, reject) {
-    if(!_.isArray(document))
-      document = [document];
-    //Add timestamp to every elements
-    document.forEach(function(item) {
-      item.timestamp = timestamp;
-    });
-    return self.insert(document, 'auction');
-  }));
+  if(!_.isArray(document))
+    document = [document];
+  //Add timestamp to every elements
+  document.forEach(function(item) {
+    item.timestamp = timestamp;
+  });
+  return this.insert(document, 'auction');
 };
 
 dataProcess.pushItemQueue = function(item, callback) {
@@ -144,43 +152,52 @@ dataProcess.close = function() {
   });
 };
 
+//TODO : Use the server parameter
 dataProcess.count = function(server) {
-  return ensureDB().then(new Promise(function(resolve, reject) {
-    var collection = mongoDb.collection('auction');
-    collection.count(function(err,results) {
-      if(err)
-        reject(err);
-      else
-        resolve(results);
+  var fn = function() {
+    return new Promise(function(resolve, reject) {
+      var collection = mongoDb.collection('auction');
+      collection.count(function(err,results) {
+        if(err)
+          reject(err);
+        else
+          resolve(results);
+      });
     });
-  }));
+  };
+
+  return ensureDB().then(fn);
 };
 
-dataProcess.getItem = function(itemID, callback) {
-  ensureDB(callback,function() {
-    var collection = mongoDb.collection('items');
-    collection.findOne({id:itemID},function(err, item){
-      if(err || !item)
-        callback(err, null);
-      else
-        callback(null, item);
+dataProcess.getItem = function(itemID) {
+  var fn = function() {
+    return new Promise(function(resolve, reject) {
+      var collection = mongoDb.collection('items');
+      collection.findOne({id:itemID}, function(err, item) {
+        if(err || !item)
+          reject(new Error(err));
+        else
+          resolve(item);
+      });
     });
-  });
+  };
+
+  return ensureDB().then(fn);
 };
 
 dataProcess.containItem = function(itemID, callback) {
-  dataProcess.getItem(itemID, function(err, res) {
-    if(err)
-      callback(err, null);
-    else
-      callback(null, res ? true : false);
+  return dataProcess.getItem(itemID).then(function(res) {
+    return new Promise(function(resolve, reject) {
+      if(err)
+        reject(err);
+      else
+        resolve(res ? true : false);
+    });
   });
 };
 
-dataProcess.insertItem = function(item, callback) {
-  ensureDB(callback,function() {
-    dataProcess.insert(item, 'items', callback);
-  });
+dataProcess.insertItem = function(item) {
+  return ensureDB().then(dataProcess.insert(item, 'items'));
 };
 
 dataProcess.init = function() {
@@ -214,45 +231,34 @@ dataProcess.init = function() {
   }
 };
 
-dataProcess.connected = function(callback) {
-  ensureDB(function() {
-    callback(false);
-  },function() {
-    callback(true);
-  });
-};
-
-dataProcess.getSalesOccurence = function(server, callback) {
-  sum(server,
-    function(){
+dataProcess.getSalesOccurence = function(server) {
+  return sum(server,
+    function() {
       emit(this.item,1);
     },
     reducers.normal,
-    sorts.des,
-    callback);
+    sorts.des);
 };
 
-dataProcess.getSalesValueBuyout = function(server, callback) {
-  sum(server,
+dataProcess.getSalesValueBuyout = function(server) {
+  return sum(server,
     function(){
       emit(this.item,{amount : 1 , value : this.buyout});
     },
     reducers.double,
-    sorts.double.des,
-    callback);
+    sorts.double.des);
 };
 
-dataProcess.getSalesValueBid = function(server, callback) {
-  sum(server,
+dataProcess.getSalesValueBid = function(server) {
+  return sum(server,
     function(){
       emit(this.item,this.bid);
     },
     reducers.normal,
-    sorts.asc,
-    callback);
+    sorts.asc);
 };
 
-dataProcess.getServers = function(){
+dataProcess.getServers = function() {
   return servers;
 };
 

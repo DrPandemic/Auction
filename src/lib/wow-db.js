@@ -3,44 +3,42 @@
 var wowDB = {},
     wowApi = null,
     database = null,
-    logger = require('../logger');
+    logger = require('../logger'),
+    Promise = require('bluebird');
 
-function ensureState(err,callback) {
-  if(!wowApi && !database) {
-    logger.log(0,'wow-db is not well initialized');
-    err('wow-db is not well initialized', null);
-    return;
-  }
-  else
-    callback();
+
+function ensureState() {
+  return new Promise(function(resolve, reject) {
+    if(!wowApi || !database) {
+      logger.log(0,'wow-db is not well initialized');
+      reject(new Error('wow-db is not well initialized'));
+    }
+    else
+      resolve();
+  });
 }
 
 wowDB.init = function(api,db) {
   wowApi = api;
   database = db;
 };
-wowDB.getItem = function(itemID, callback) {
-  ensureState(callback, function() {
-    //Tests if the DB has it
-    database.getItem(itemID,function(err, item) {
-      if(err) callback(err,null);
-      //Already present
-      else if(item) callback(null, item);
-      //If not, fetch it
+wowDB.getItem = function(itemID) {
+  return ensureState()
+   .then(function() {
+    return database.getItem(itemID);
+  }).then(function(item) {
+      if(item)
+        return Promise.resolve(item);
       else {
-        wowApi.getItem(itemID, function(err, item) {
-          if(err || !item) callback(err, null);
-          else {
-            //Cool, we have a new item, let's save it
-            database.insertItem(item, function(err, res) {
-              if(err) logger.log(1,'There was an error while inserting an item');
-            });
-           callback(null, item);
-          }
-        });
-      }
-    });
-  });
+        return wowApi.getItem(itemID)
+          .then(database.insertItem)
+          .catch(function(err) {
+            logger.log(0,error.message);
+            logger.log(0,error.stack);
+          });
+        };
+      });
 };
+
 
 module.exports = wowDB;

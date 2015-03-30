@@ -3,7 +3,7 @@
 var Queue = require('./lib/queue'),
     queue = new Queue();
 
-queue.subscribe('test', function(message) {
+queue.listen('test', function(message) {
   console.log(message);
 });
 

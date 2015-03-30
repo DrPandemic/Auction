@@ -108,7 +108,7 @@ function sum(server, mapper, reducer, sort) {
           resolve(results);
         }
       });
-    })
+    });
   };
 
   return ensureDB().then(fn);
@@ -118,12 +118,12 @@ dataProcess.insert = function(document, collectionName) {
   var fn = function() {
     return new Promise(function(resolve, reject) {
       var collection = mongoDb.collection(collectionName);
-      logger.log(1, 'Inserting...');
+      logger.log(2, 'Inserting...');
       collection.insert(document, {continueOnError: true, safe: true, w:1}, function(err, result) {
         //We ignore error, because duplicates will trigger errors
         resolve(document);
       });
-    })
+    });
   };
 
   return ensureDB().then(fn);
@@ -188,10 +188,7 @@ dataProcess.getItem = function(itemID) {
 dataProcess.containItem = function(itemID, callback) {
   return dataProcess.getItem(itemID).then(function(res) {
     return new Promise(function(resolve, reject) {
-      if(err)
-        reject(err);
-      else
-        resolve(res ? true : false);
+      resolve(res ? true : false);
     });
   });
 };

@@ -1,4 +1,11 @@
 key.js
-node_modules/*
-build/*
+*key*
+build
 npm-debug.log
+node_modules
+public
+.tmp
+.idea
+client/bower_components
+dist
+server/config/local.env.js

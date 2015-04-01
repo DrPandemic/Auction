@@ -12,10 +12,7 @@ var dataProcess = {},
     tQueueItem = 'itemQueue',
     Promise = require('bluebird');
 
-
-
   sorts.double = {};
-
 
 sorts.asc = function(a,b) {
   return a.value - b.value;

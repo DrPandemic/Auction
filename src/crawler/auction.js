@@ -1,10 +1,5 @@
 "use strict";
 
-/*
-TODO :
-  Finish DB transformation to promises
-*/
-
 var database = require('./lib/database'),
   servers = [],
   wowApi = require('./lib/wow-api'),

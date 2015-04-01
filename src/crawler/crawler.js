@@ -1,10 +1,5 @@
 "use strict";
 
-/*
-TODO :
-  Finish DB transformation to promises
-*/
-
 var database = require('./lib/database'),
   servers = [],
   wowApi = require('./lib/wow-api'),
@@ -52,4 +47,5 @@ function query(server, count) {
 function catchError(error) {
   logger.log(0,error.message);
   logger.log(0,error.stack);
+  return Promise.solve();
 }

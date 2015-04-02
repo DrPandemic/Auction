@@ -9,7 +9,9 @@ var database = require('./lib/database'),
   _ = require('underscore'),
   Promise = require('bluebird'),
   Queue = require('./lib/queue'),
-  queue = new Queue();
+  queue = new Queue(),
+  connected = true,
+  listenToken = null;
 
 
 wowDB.init(wowApi, database);
@@ -18,9 +20,9 @@ database.init()
  .catch(catchError);
 
 function start() {
-  queue.listen('crawler', function(server) {
+  listenToken = queue.listen('crawler', function(server) {
     query(server,0)
-    .then(function(auctions) {
+     .then(function(auctions) {
       logger.log(2, server + ' was crawl and sent back ' + auctions.length + ' auctions');
     }).catch(catchError);
   });
@@ -50,9 +52,9 @@ function catchError(error) {
   return Promise.solve();
 }
 
-//TODO
-process.on('message', function(msg) {
+process.on('disconnect', function(msg) {
   if(msg === 'shutdown') {
-    // initiate graceful close of any connections to server
+    connected = false;
+    queue.stopListen(listenToken);
   }
 });

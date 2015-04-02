@@ -2,7 +2,8 @@
 
 var redis = require("redis"),
     prefix = 'channel_',
-    logger = require('../logger');
+    logger = require('../logger'),
+    listenTokens = [];
 
 
 var queue = function() {
@@ -35,21 +36,35 @@ queue.prototype.publish = function(channel, message) {
 
 queue.prototype.listen = function(channel, callback) {
   var client = redis.createClient(),
-      listen = function() {
-    client.blpop(prefix+channel, 0, function(err, message) {
-      if(!err)
-        callback(message[1]);
-      else
-        logger.log(0,err);
+      token = Symbol();
 
-      process.nextTick(listen);
+  var listen = function() {
+    client.blpop(prefix+channel, 0, function(err, message) {
+      if(err)
+        return logger.log(0,err);
+
+      //If the token is still present, execute the callback
+      if(listenTokens.indexOf(token) !== -1) {
+        callback(message[1]);
+
+        process.nextTick(listen);
+      } else
+        this.pub.lpush(prefix+channel, message[1]);
     });
   };
 
   process.nextTick(listen);
+
+  listenToken.push(token);
 };
 queue.prototype.send = function(channel, message) {
   this.pub.rpush(prefix+channel, message);
 };
+
+queue.prototype.stopListen = function(token) {
+  var index = listenTokens.indexOf(token);
+  if (index > -1)
+    array.splice(index, 1);
+}
 
 module.exports = queue;

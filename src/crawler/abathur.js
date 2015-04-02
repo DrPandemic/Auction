@@ -1,23 +1,21 @@
 'use strict';
 
-//https://gist.github.com/dickeyxxx/0f535be1ada0ea964cae
-var cluster = require('cluster'),
-    workers = [];
+//TODO : Test the stop procedure
 
-cluster.setupMaster({ exec: 'crawler.js' });
+var CP = require('child_process'),
+    workers = [];
 
 function startWorker() {
   console.log('Starting new crawler');
-  workers.push(cluster.fork());
+  workers.push(CP.fork('./crawler.js'));
 }
 
 function stopWorker(worker) {
   worker = worker || workers.shift();
-  //TODO: Check if is alive
-  if(!worker)
+  if(!worker || !worker.connected)
     return;
 
-  console.log('stopping', worker.process.pid);
+  console.log('stopping', worker.pid);
   worker.send('shutdown');
   worker.disconnect();
   var killTimer = setTimeout(function() {
@@ -29,3 +27,4 @@ function stopWorker(worker) {
   });
 }
 
+startWorker();

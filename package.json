@@ -24,7 +24,7 @@
   },
   "scripts": {
     "test": "jshint src/crawler/*.js src/crawler/lib/*.js & node_modules/.bin/mocha",
-    "start": "nodemon src/crawler/auction.js",
+    "start": "cd src/crawler && nodemon ./abathur.js -w ./",
     "crawler": "nodemon src/crawler/crawler.js",
     "start-test": "node-theseus src/crawler/auction.js",
     "web": "grunt --gruntfile src/web/Gruntfile.js serve"

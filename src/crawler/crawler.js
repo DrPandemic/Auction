@@ -49,3 +49,10 @@ function catchError(error) {
   logger.log(0,error.stack);
   return Promise.solve();
 }
+
+//TODO
+process.on('message', function(msg) {
+  if(msg === 'shutdown') {
+    // initiate graceful close of any connections to server
+  }
+});

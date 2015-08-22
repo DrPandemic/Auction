@@ -1,10 +1,10 @@
 /**
  * Using Rails-like standard naming convention for endpoints.
- * GET     /things              ->  index
- * POST    /things              ->  create
- * GET     /things/:id          ->  show
- * PUT     /things/:id          ->  update
- * DELETE  /things/:id          ->  destroy
+ * GET     /api/things              ->  index
+ * POST    /api/things              ->  create
+ * GET     /api/things/:id          ->  show
+ * PUT     /api/things/:id          ->  update
+ * DELETE  /api/things/:id          ->  destroy
  */
 
 'use strict';
@@ -12,57 +12,91 @@
 var _ = require('lodash');
 var Thing = require('./thing.model');
 
-// Get list of things
-exports.index = function(req, res) {
-  Thing.find(function (err, things) {
-    if(err) { return handleError(res, err); }
-    return res.json(200, things);
-  });
-};
-
-// Get a single thing
-exports.show = function(req, res) {
-  Thing.findById(req.params.id, function (err, thing) {
-    if(err) { return handleError(res, err); }
-    if(!thing) { return res.send(404); }
-    return res.json(thing);
-  });
-};
-
-// Creates a new thing in the DB.
-exports.create = function(req, res) {
-  Thing.create(req.body, function(err, thing) {
-    if(err) { return handleError(res, err); }
-    return res.json(201, thing);
-  });
-};
-
-// Updates an existing thing in the DB.
-exports.update = function(req, res) {
-  if(req.body._id) { delete req.body._id; }
-  Thing.findById(req.params.id, function (err, thing) {
-    if (err) { return handleError(res, err); }
-    if(!thing) { return res.send(404); }
-    var updated = _.merge(thing, req.body);
-    updated.save(function (err) {
-      if (err) { return handleError(res, err); }
-      return res.json(200, thing);
-    });
-  });
-};
-
-// Deletes a thing from the DB.
-exports.destroy = function(req, res) {
-  Thing.findById(req.params.id, function (err, thing) {
-    if(err) { return handleError(res, err); }
-    if(!thing) { return res.send(404); }
-    thing.remove(function(err) {
-      if(err) { return handleError(res, err); }
-      return res.send(204);
-    });
-  });
-};
-
-function handleError(res, err) {
-  return res.send(500, err);
+function handleError(res, statusCode) {
+  statusCode = statusCode || 500;
+  return function(err) {
+    res.status(statusCode).send(err);
+  };
 }
+
+function responseWithResult(res, statusCode) {
+  statusCode = statusCode || 200;
+  return function(entity) {
+    if (entity) {
+      res.status(statusCode).json(entity);
+    }
+  };
+}
+
+function handleEntityNotFound(res) {
+  return function(entity) {
+    if (!entity) {
+      res.status(404).end();
+      return null;
+    }
+    return entity;
+  };
+}
+
+function saveUpdates(updates) {
+  return function(entity) {
+    var updated = _.merge(entity, updates);
+    return updated.saveAsync()
+      .spread(function(updated) {
+        return updated;
+      });
+  };
+}
+
+function removeEntity(res) {
+  return function(entity) {
+    if (entity) {
+      return entity.removeAsync()
+        .then(function() {
+          res.status(204).end();
+        });
+    }
+  };
+}
+
+// Gets a list of Things
+exports.index = function(req, res) {
+  Thing.findAsync()
+    .then(responseWithResult(res))
+    .catch(handleError(res));
+};
+
+// Gets a single Thing from the DB
+exports.show = function(req, res) {
+  Thing.findByIdAsync(req.params.id)
+    .then(handleEntityNotFound(res))
+    .then(responseWithResult(res))
+    .catch(handleError(res));
+};
+
+// Creates a new Thing in the DB
+exports.create = function(req, res) {
+  Thing.createAsync(req.body)
+    .then(responseWithResult(res, 201))
+    .catch(handleError(res));
+};
+
+// Updates an existing Thing in the DB
+exports.update = function(req, res) {
+  if (req.body._id) {
+    delete req.body._id;
+  }
+  Thing.findByIdAsync(req.params.id)
+    .then(handleEntityNotFound(res))
+    .then(saveUpdates(req.body))
+    .then(responseWithResult(res))
+    .catch(handleError(res));
+};
+
+// Deletes a Thing from the DB
+exports.destroy = function(req, res) {
+  Thing.findByIdAsync(req.params.id)
+    .then(handleEntityNotFound(res))
+    .then(removeEntity(res))
+    .catch(handleError(res));
+};

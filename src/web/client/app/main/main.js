@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('auctionApp')
-  .config(function ($stateProvider) {
+  .config(function($stateProvider) {
     $stateProvider
       .state('main', {
         url: '/',

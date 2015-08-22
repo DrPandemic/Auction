@@ -7,21 +7,19 @@ module.exports = function(config) {
     basePath: '',
 
     // testing framework to use (jasmine/mocha/qunit/...)
-    frameworks: ['jasmine'],
+    frameworks: ['mocha', 'chai', 'sinon-chai', 'chai-as-promised', 'chai-things'],
+
+    client: {
+      mocha: {
+        timeout: 5000 // set default mocha spec timeout
+      }
+    },
 
     // list of files / patterns to load in the browser
     files: [
-      'client/bower_components/jquery/dist/jquery.js',
-      'client/bower_components/angular/angular.js',
-      'client/bower_components/angular-mocks/angular-mocks.js',
-      'client/bower_components/angular-resource/angular-resource.js',
-      'client/bower_components/angular-cookies/angular-cookies.js',
-      'client/bower_components/angular-sanitize/angular-sanitize.js',
-      'client/bower_components/angular-route/angular-route.js',
-      'client/bower_components/angular-bootstrap/ui-bootstrap-tpls.js',
-      'client/bower_components/lodash/dist/lodash.compat.js',
-      'client/bower_components/angular-socket-io/socket.js',
-      'client/bower_components/angular-ui-router/release/angular-ui-router.js',
+      // bower:js
+      // endbower
+      'node_modules/socket.io-client/socket.io.js',
       'client/app/app.js',
       'client/app/app.coffee',
       'client/app/**/*.js',
@@ -48,6 +46,8 @@ module.exports = function(config) {
       stripPrefix: 'client/'
     },
 
+    
+
     // list of files / patterns to exclude
     exclude: [],
 
@@ -58,6 +58,14 @@ module.exports = function(config) {
     // possible values: LOG_DISABLE || LOG_ERROR || LOG_WARN || LOG_INFO || LOG_DEBUG
     logLevel: config.LOG_INFO,
 
+    // reporter types:
+    // - dots
+    // - progress (default)
+    // - spec (karma-spec-reporter)
+    // - junit
+    // - growl
+    // - coverage
+    reporters: ['spec'],
 
     // enable / disable watching file and executing tests whenever any file changes
     autoWatch: false,

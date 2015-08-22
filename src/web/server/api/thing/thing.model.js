@@ -1,7 +1,7 @@
 'use strict';
 
-var mongoose = require('mongoose'),
-    Schema = mongoose.Schema;
+var mongoose = require('bluebird').promisifyAll(require('mongoose'));
+var Schema = mongoose.Schema;
 
 var ThingSchema = new Schema({
   name: String,

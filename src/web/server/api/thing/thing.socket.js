@@ -4,21 +4,31 @@
 
 'use strict';
 
-var thing = require('./thing.model');
+var ThingEvents = require('./thing.events');
+
+// Model events to emit
+var events = ['save', 'remove'];
 
 exports.register = function(socket) {
-  thing.schema.post('save', function (doc) {
-    onSave(socket, doc);
-  });
-  thing.schema.post('remove', function (doc) {
-    onRemove(socket, doc);
-  });
+  // Bind model events to socket events
+  for (var i = 0, eventsLength = events.length; i < eventsLength; i++) {
+    var event = events[i];
+    var listener = createListener('thing:' + event, socket);
+
+    ThingEvents.on(event, listener);
+    socket.on('disconnect', removeListener(event, listener));
+  }
+};
+
+
+function createListener(event, socket) {
+  return function(doc) {
+    socket.emit(event, doc);
+  };
 }
 
-function onSave(socket, doc, cb) {
-  socket.emit('thing:save', doc);
-}
-
-function onRemove(socket, doc, cb) {
-  socket.emit('thing:remove', doc);
+function removeListener(event, listener) {
+  return function() {
+    ThingEvents.removeListener(event, listener);
+  };
 }

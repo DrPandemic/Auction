@@ -7,6 +7,16 @@ module.exports = {
   mongo: {
     uri: 'mongodb://localhost/auction-dev'
   },
+  sequelize: {
+    uri: 'sqlite://',
+    options: {
+      logging: false,
+      storage: 'dev.sqlite',
+      define: {
+        timestamps: false
+      }
+    }
+  },
 
   seedDB: true
 };

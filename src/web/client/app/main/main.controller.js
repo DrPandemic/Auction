@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('auctionApp')
-  .controller('MainCtrl', function ($scope, $http, socket) {
+  .controller('MainCtrl', function($scope, $http, socket) {
     $scope.awesomeThings = [];
 
     $http.get('/api/things').success(function(awesomeThings) {
@@ -10,7 +10,7 @@ angular.module('auctionApp')
     });
 
     $scope.addThing = function() {
-      if($scope.newThing === '') {
+      if ($scope.newThing === '') {
         return;
       }
       $http.post('/api/things', { name: $scope.newThing });
@@ -21,7 +21,7 @@ angular.module('auctionApp')
       $http.delete('/api/things/' + thing._id);
     };
 
-    $scope.$on('$destroy', function () {
+    $scope.$on('$destroy', function() {
       socket.unsyncUpdates('thing');
     });
   });

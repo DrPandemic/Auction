@@ -3,7 +3,8 @@
 var redis = require("redis"),
     prefix = 'channel_',
     logger = require('../logger'),
-    listenTokens = [];
+    listenTokens = [],
+    Symbol = require('symbol');
 
 
 var queue = function() {
@@ -55,7 +56,9 @@ queue.prototype.listen = function(channel, callback) {
 
   process.nextTick(listen);
 
-  listenToken.push(token);
+  listenTokens.push(token);
+
+  return listenTokens;
 };
 queue.prototype.send = function(channel, message) {
   this.pub.rpush(prefix+channel, message);
@@ -64,7 +67,7 @@ queue.prototype.send = function(channel, message) {
 queue.prototype.stopListen = function(token) {
   var index = listenTokens.indexOf(token);
   if (index > -1)
-    array.splice(index, 1);
-}
+    listenTokens.splice(index, 1);
+};
 
 module.exports = queue;

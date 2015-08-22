@@ -11,7 +11,7 @@ var database = require('./lib/database'),
   Queue = require('./lib/queue'),
   queue = new Queue(),
   connected = true,
-  listenToken = null;
+  listenTokens = null;
 
 
 wowDB.init(wowApi, database);
@@ -20,10 +20,10 @@ database.init()
  .catch(catchError);
 
 function start() {
-  listenToken = queue.listen('crawler', function(server) {
+  listenTokens = queue.listen('crawler', function(server) {
     query(server,0)
      .then(function(auctions) {
-      logger.log(2, server + ' was crawl and sent back ' + auctions.length + ' auctions');
+      logger.log(2, server + ' was crawling and sent back ' + auctions.length + ' auctions');
     }).catch(catchError);
   });
 }
@@ -31,10 +31,10 @@ function start() {
 function query(server, count) {
   return wowApi.query(server)
    .then(function(body) {
-    if(body && body.results && body.results.realm) {
-      logger.log(1,body.results.realm);
-      logger.log(2,body.results.auctions.auctions.length);
-      return database.insertDump(body.results.auctions.auctions, body.timestamp);
+    if(body && body.results && (body.results.realm || body.results.realms)) {
+      logger.log(1,body.results.realms);
+      logger.log(2,body.results.auctions.length);
+      return database.insertDump(body.results.auctions, body.timestamp);
     }
     else {
       console.log('The body is malformed');
@@ -55,6 +55,6 @@ function catchError(error) {
 process.on('disconnect', function(msg) {
   if(msg === 'shutdown') {
     connected = false;
-    queue.stopListen(listenToken);
+    queue.stopListen(listenTokens);
   }
 });

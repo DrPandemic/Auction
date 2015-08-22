@@ -1,7 +1,5 @@
 'use strict';
 
-//TODO : Test the stop procedure
-
 var CP = require('child_process'),
     workers = [];
 

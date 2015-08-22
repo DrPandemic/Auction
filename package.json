@@ -10,6 +10,7 @@
     "node-rest-client": "^1.4.3",
     "redis": "^0.12.1",
     "request": "^2.51.0",
+    "symbol": "^0.2.1",
     "underscore": "^1.7.0"
   },
   "devDependencies": {
@@ -24,9 +25,10 @@
   },
   "scripts": {
     "test": "jshint src/crawler/*.js src/crawler/lib/*.js & node_modules/.bin/mocha",
-    "start": "cd src/crawler && nodemon ./abathur.js -w ./",
-    "crawler": "nodemon src/crawler/crawler.js",
-    "start-test": "node-theseus src/crawler/auction.js",
+    "start": "cd src/crawler && node ./abathur.js -w ./",
+    "watch": "cd src/crawler && nodemon ./abathur.js -w ./",
+    "debug": "cd src/crawler && node-debug ./crawler.js",
+    "theseus": "node-theseus src/crawler/auction.js",
     "web": "grunt --gruntfile src/web/Gruntfile.js serve"
   },
   "author": "DrPandemic",

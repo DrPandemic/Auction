@@ -33,10 +33,10 @@ wowDB.getItem = function(itemID) {
         return wowApi.getItem(itemID)
           .then(database.insertItem)
           .catch(function(err) {
-            logger.log(0,error.message);
-            logger.log(0,error.stack);
+            logger.log(0,err.message);
+            logger.log(0,err.stack);
           });
-        };
+        }
       });
 };
 

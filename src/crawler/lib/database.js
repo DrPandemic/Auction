@@ -111,6 +111,10 @@ function sum(server, mapper, reducer, sort) {
   return ensureDB().then(fn);
 }
 
+dataProcess.connected = function() {
+  return ensureDB();
+};
+
 dataProcess.insert = function(document, collectionName) {
   var fn = function() {
     return new Promise(function(resolve, reject) {
@@ -142,7 +146,7 @@ dataProcess.popItemQueue = function(item, callback) {
 };
 
 dataProcess.close = function() {
-  ensureDB().then(function() {
+  return ensureDB().then(function() {
     logger.log(0,'Closing DB connection');
     mongoDb.close();
     return Promise.resolve();

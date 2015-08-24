@@ -1,174 +1,130 @@
 "use strict";
 
 var rewire = require("rewire"),
-  should = require('should'),
-  sinon = require('sinon'),
-  async = require('async'),
-  _ = require('underscore'),
-  database = null,
-  connErr = null;
+chai = require("chai"),
+chaiAsPromised = require("chai-as-promised"),
+sinon = require('sinon'),
+async = require('async'),
+assert = chai.assert,
+_ = require('underscore'),
+database = null,
+connErr = null,
+Promise = require('bluebird');
 
+require("mocha-as-promised")();
+
+var should = chai.Should();
+chai.use(chaiAsPromised);
 
 before(function(done){
-  function ready(err) {
-    connErr = err;
-
-    done();
-  }
-  database = rewire('../src/lib/database');
+  database = rewire('../src/crawler/lib/database');
   database.__get__('logger').verbose = -1;
-  database.init(ready);
+  database.init().then(function() {
+    done();
+  }).catch(function(err) {
+    connErr = err;
+    done();
+  });
 });
 
 describe('database', function () {
-  it('should not return an error', function (done) {
-    should(connErr).not.be.ok;
-    done();
+  it('should not return an error', function () {
+    should.not.exist(connErr);
   });
 
-  it('should be connected', function (done) {
-    database.connected(function(conn) {
-      conn.should.be.true;
-      done();
-    });
+  it('should be connected', function () {
+    return database.connected().should.be.fulfilled;
   });
 
   it('should use a collection', function (done) {
     var mongo = database.__get__('mongoDb');
-    mongo.should.be.ok;
+    mongo.should.exist;
 
     var collection = sinon.stub(mongo,'collection'),
-      newCollection = sinon.stub(),
-      insert = sinon.stub();
+    newCollection = sinon.stub(),
+    insert = sinon.stub();
 
     insert.callsArg(2);
     newCollection.insert = insert;
     collection.withArgs('auction').returns(newCollection);
 
-    database.insert({test:'test'},'auction',function(){
+    return database.insert({test:'test'},'auction')
+    .then(function() {
       collection.calledWith('auction').should.be.true;
       database.__get__('mongoDb').collection.restore();
-      done();
     });
   });
 
   it('should insert the array', function (done) {
     var mongo = database.__get__('mongoDb');
-    mongo.should.be.ok;
+    mongo.should.exist;
 
     var collection = sinon.stub(mongo,'collection'),
-      newCollection = {},
-      insert = sinon.stub(),
-      doc = [{wow:1},{ok:2}];
+    newCollection = {},
+    insert = sinon.stub(),
+    doc = [{wow:1},{ok:2}];
 
     insert.callsArg(2);
     newCollection.insert = insert;
     collection.withArgs('auction').returns(newCollection);
 
-    database.insert(doc,'auction',function(){
+    return database.insert(doc,'auction')
+    .then(function(){
       newCollection.insert.calledWith(doc).should.be.true;
       database.__get__('mongoDb').collection.restore();
-      done();
     });
   });
 
   it('should insert the object', function (done) {
     var mongo = database.__get__('mongoDb');
-    mongo.should.be.ok;
+    mongo.should.exist;
 
     var collection = sinon.stub(mongo,'collection'),
-      newCollection = {},
-      insert = sinon.stub(),
-      doc = {wow:1};
+    newCollection = {},
+    insert = sinon.stub(),
+    doc = {wow:1};
 
     insert.callsArg(2);
     newCollection.insert = insert;
     collection.withArgs('auction').returns(newCollection);
 
-    database.insert(doc,'auction',function(){
+    return database.insert(doc,'auction',function(){
       newCollection.insert.calledWith(doc).should.be.true;
       database.__get__('mongoDb').collection.restore();
-      done();
     });
   });
 
   it('should test connection before every method calls', function (done) {
     var mongo = database.__get__('mongoDb'),
-      str = "There was an error with the DB connection";
+    str = "There was an error with the DB connection";
     database.__set__('mongoDb', null);
 
-    async.series([
-      function(cb){
-        database.insert([],'',function(err, doc) {
-          should(err).be.eql(str);
-          should(doc).not.be.ok;
-          cb();
-        });
-      },
-      function(cb){
-        database.insertDump([],0,function(err, doc) {
-          should(err).be.eql(str);
-          should(doc).not.be.ok;
-          cb();
-        });
-      },
-      function(cb){
-        database.close(function(err, doc) {
-          should(err).be.eql(str);
-          should(doc).not.be.ok;
-          cb();
-        });
-      },
-      function(cb){
-        database.count('some',function(err, doc) {
-          should(err).be.eql(str);
-          should(doc).not.be.ok;
-          cb();
-        });
-      },
-      function(cb){
-        database.containItem('some',function(err, doc) {
-          should(err).be.eql(str);
-          should(doc).not.be.ok;
-          cb();
-        });
-      },function(cb){
-        database.insertItem('some',function(err, doc) {
-          should(err).be.eql(str);
-          should(doc).not.be.ok;
-          cb();
-        });
-      },
-      function(cb){
-        database.getSalesOccurence('some',function(err, doc) {
-          should(err).be.eql(str);
-          should(doc).not.be.ok;
-          cb();
-        });
-      },
-      function(cb){
-        database.getSalesValueBuyout('some',function(err, doc) {
-          should(err).be.eql(str);
-          should(doc).not.be.ok;
-          cb();
-        });
-      },
-      function(cb){
-        database.getSalesValueBid('some',function(err, doc) {
-          should(err).be.eql(str);
-          should(doc).not.be.ok;
-          cb();
-        });
-      }
-    ],function(err, results) {
-      should(err).not.be.ok;
-      should(results).be.ok;
+    //Silence the unhandled exceptions
+    var rejecter = Promise.onPossiblyUnhandledRejection;
+    Promise.onPossiblyUnhandledRejection(undefined);
+
+    var funcs = [
+      database.insert([],''),
+      database.insertDump([],0),
+      database.close(),
+      database.count('some'),
+      database.containItem('some'),
+      database.insertItem('some'),
+      database.getSalesOccurence('some'),
+      database.getSalesValueBuyout('some'),
+      database.getSalesValueBid('some')
+    ];
+
+    return Promise.settle(funcs).then(function(results) {
+      var res = results.reduce(function(prev, current) {
+        return prev && current.isRejected() && current.reason().message === str;
+      }, true);
 
       database.__set__('mongoDb', mongo);
-      done();
+      Promise.onPossiblyUnhandledRejection(rejecter);
+
+      return res ? Promise.resolve() : Promise.reject(new Error('At least one function didn\'t test the connection'));
     });
-
-
   });
 
   it('insert dump should not fail whitout an array', function (done) {
@@ -176,9 +132,9 @@ describe('database', function () {
     mongo.should.be.ok;
 
     var collection = sinon.stub(mongo,'collection'),
-      newCollection = {},
-      insert = sinon.stub(),
-      doc = {wow:1};
+    newCollection = {},
+    insert = sinon.stub(),
+    doc = {wow:1};
 
     insert.callsArg(2);
     newCollection.insert = insert;
@@ -196,9 +152,9 @@ describe('database', function () {
     mongo.should.be.ok;
 
     var collection = sinon.stub(mongo,'collection'),
-      newCollection = {},
-      insert = sinon.stub(),
-      doc = [{wow:1},{test:2}];
+    newCollection = {},
+    insert = sinon.stub(),
+    doc = [{wow:1},{test:2}];
 
     insert.callsArg(2);
     newCollection.insert = insert;
@@ -230,8 +186,8 @@ describe('database', function () {
     mongo.should.be.ok;
 
     var collection = sinon.stub(mongo,'collection'),
-      newCollection = {},
-      count = sinon.stub();
+    newCollection = {},
+    count = sinon.stub();
 
     count.callsArg(0);
     newCollection.count = count;
@@ -255,9 +211,9 @@ describe('database', function () {
     mongo.should.be.ok;
 
     var collection = sinon.stub(mongo,'collection'),
-      newCollection = {},
-      findOne = sinon.stub(),
-      id = 'foo';
+    newCollection = {},
+    findOne = sinon.stub(),
+    id = 'foo';
 
     findOne.callsArgWithAsync(1,'foo bar error');
     newCollection.findOne = findOne;
@@ -276,10 +232,10 @@ describe('database', function () {
     mongo.should.be.ok;
 
     var collection = sinon.stub(mongo,'collection'),
-      newCollection = {},
-      findOne = sinon.stub(),
-      id = 'foo',
-      obj = {foo:'bar'};
+    newCollection = {},
+    findOne = sinon.stub(),
+    id = 'foo',
+    obj = {foo:'bar'};
 
     findOne.callsArgWithAsync(1,null,obj);
     newCollection.findOne = findOne;
@@ -298,9 +254,9 @@ describe('database', function () {
     mongo.should.be.ok;
 
     var collection = sinon.stub(mongo,'collection'),
-      newCollection = {},
-      findOne = sinon.stub(),
-      id = 'foo';
+    newCollection = {},
+    findOne = sinon.stub(),
+    id = 'foo';
 
     findOne.callsArgWithAsync(1,'foo bar error');
     newCollection.findOne = findOne;
@@ -319,10 +275,10 @@ describe('database', function () {
     mongo.should.be.ok;
 
     var collection = sinon.stub(mongo,'collection'),
-      newCollection = {},
-      findOne = sinon.stub(),
-      id = 'foo',
-      obj = {foo:'bar'};
+    newCollection = {},
+    findOne = sinon.stub(),
+    id = 'foo',
+    obj = {foo:'bar'};
 
     findOne.callsArgWithAsync(1,null,obj);
     newCollection.findOne = findOne;
@@ -330,7 +286,7 @@ describe('database', function () {
 
     database.containItem(id,function(err, doc) {
       should(err).should.not.exist;
-       (_.isBoolean(doc)).should.be.true;
+      (_.isBoolean(doc)).should.be.true;
 
       //tests when the object is not found
       obj=null;

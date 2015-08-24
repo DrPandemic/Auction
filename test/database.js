@@ -1,22 +1,24 @@
 "use strict";
 
 var rewire = require("rewire"),
-chai = require("chai"),
-chaiAsPromised = require("chai-as-promised"),
-sinon = require('sinon'),
-async = require('async'),
-assert = chai.assert,
-_ = require('underscore'),
-database = null,
-connErr = null,
-Promise = require('bluebird');
+  chai = require("chai"),
+  chaiAsPromised = require("chai-as-promised"),
+  sinon = require('sinon'),
+  async = require('async'),
+  assert = chai.assert,
+  _ = require('underscore'),
+  database = null,
+  connErr = null,
+  Promise = require('bluebird'),
+  NotFoundError = require('../src/crawler/lib/errors').NotFoundError;
+
 
 require("mocha-as-promised")();
 
 var should = chai.Should();
 chai.use(chaiAsPromised);
 
-before(function(done){
+before(function(done) {
   database = rewire('../src/crawler/lib/database');
   database.__get__('logger').verbose = -1;
   database.init().then(function() {
@@ -27,76 +29,85 @@ before(function(done){
   });
 });
 
-describe('database', function () {
-  it('should not return an error', function () {
+describe('database', function() {
+  it('should not return an error', function() {
     should.not.exist(connErr);
   });
 
-  it('should be connected', function () {
+  it('should be connected', function() {
     return database.connected().should.be.fulfilled;
   });
 
-  it('should use a collection', function (done) {
+  it('should use a collection', function(done) {
     var mongo = database.__get__('mongoDb');
     mongo.should.exist;
 
-    var collection = sinon.stub(mongo,'collection'),
-    newCollection = sinon.stub(),
-    insert = sinon.stub();
+    var collection = sinon.stub(mongo, 'collection'),
+      newCollection = sinon.stub(),
+      insert = sinon.stub();
 
     insert.callsArg(2);
     newCollection.insert = insert;
     collection.withArgs('auction').returns(newCollection);
 
-    return database.insert({test:'test'},'auction')
-    .then(function() {
-      collection.calledWith('auction').should.be.true;
-      database.__get__('mongoDb').collection.restore();
-    });
+    return database.insert({
+        test: 'test'
+      }, 'auction')
+      .then(function() {
+        collection.calledWith('auction').should.be.true;
+        database.__get__('mongoDb').collection.restore();
+      });
   });
 
-  it('should insert the array', function (done) {
+  it('should insert the array', function(done) {
     var mongo = database.__get__('mongoDb');
     mongo.should.exist;
 
-    var collection = sinon.stub(mongo,'collection'),
-    newCollection = {},
-    insert = sinon.stub(),
-    doc = [{wow:1},{ok:2}];
+    var collection = sinon.stub(mongo, 'collection'),
+      newCollection = {},
+      insert = sinon.stub(),
+      doc = [{
+        wow: 1
+      }, {
+        ok: 2
+      }];
 
     insert.callsArg(2);
     newCollection.insert = insert;
     collection.withArgs('auction').returns(newCollection);
 
-    return database.insert(doc,'auction')
-    .then(function(){
-      newCollection.insert.calledWith(doc).should.be.true;
-      database.__get__('mongoDb').collection.restore();
-    });
+    return database.insert(doc, 'auction')
+      .then(function() {
+        newCollection.insert.calledWith(doc).should.be.true;
+        database.__get__('mongoDb').collection.restore();
+      });
   });
 
-  it('should insert the object', function (done) {
+  it('should insert the object', function(done) {
     var mongo = database.__get__('mongoDb');
     mongo.should.exist;
 
-    var collection = sinon.stub(mongo,'collection'),
-    newCollection = {},
-    insert = sinon.stub(),
-    doc = {wow:1};
+    var collection = sinon.stub(mongo, 'collection'),
+      newCollection = {},
+      insert = sinon.stub(),
+      doc = {
+        wow: 1
+      };
 
     insert.callsArg(2);
     newCollection.insert = insert;
     collection.withArgs('auction').returns(newCollection);
 
-    return database.insert(doc,'auction',function(){
-      newCollection.insert.calledWith(doc).should.be.true;
-      database.__get__('mongoDb').collection.restore();
-    });
+    return database.insert(doc, 'auction')
+      .then(function() {
+        newCollection.insert.calledWith(doc).should.be.true;
+        database.__get__('mongoDb').collection.restore();
+      });
   });
 
-  it('should test connection before every method calls', function (done) {
+  it('should test connection before every method calls', function(done) {
     var mongo = database.__get__('mongoDb'),
-    str = "There was an error with the DB connection";
+      str = "There was an error with the DB connection";
     database.__set__('mongoDb', null);
 
     //Silence the unhandled exceptions
@@ -104,8 +115,8 @@ describe('database', function () {
     Promise.onPossiblyUnhandledRejection(undefined);
 
     var funcs = [
-      database.insert([],''),
-      database.insertDump([],0),
+      database.insert([], ''),
+      database.insertDump([], 0),
       database.close(),
       database.count('some'),
       database.containItem('some'),
@@ -117,220 +128,233 @@ describe('database', function () {
 
     return Promise.settle(funcs).then(function(results) {
       var res = results.reduce(function(prev, current) {
-        return prev && current.isRejected() && current.reason().message === str;
+        return prev && current.isRejected() && current.reason()
+          .message === str;
       }, true);
 
       database.__set__('mongoDb', mongo);
       Promise.onPossiblyUnhandledRejection(rejecter);
 
-      return res ? Promise.resolve() : Promise.reject(new Error('At least one function didn\'t test the connection'));
+      return res ? Promise.resolve() : Promise.reject(new Error(
+        'At least one function didn\'t test the connection'));
     });
   });
 
-  it('insert dump should not fail whitout an array', function (done) {
+  it('insert dump should succeed even whitout an array', function(done) {
     var mongo = database.__get__('mongoDb');
-    mongo.should.be.ok;
+    mongo.should.exist;
 
-    var collection = sinon.stub(mongo,'collection'),
-    newCollection = {},
-    insert = sinon.stub(),
-    doc = {wow:1};
+    var collection = sinon.stub(mongo, 'collection'),
+      newCollection = {},
+      insert = sinon.stub(),
+      doc = {
+        wow: 1
+      };
 
     insert.callsArg(2);
     newCollection.insert = insert;
     collection.withArgs('auction').returns(newCollection);
 
-    database.insertDump(doc,0,function(){
-      newCollection.insert.called.should.be.true;
-      database.__get__('mongoDb').collection.restore();
-      done();
-    });
+    return database.insertDump(doc, 0)
+      .then(function() {
+        newCollection.insert.called.should.be.true;
+        database.__get__('mongoDb').collection.restore();
+      });
   });
 
-  it('insert dump should adds timestamp', function (done) {
+  it('insert dump should adds timestamp', function(done) {
     var mongo = database.__get__('mongoDb');
-    mongo.should.be.ok;
+    mongo.should.exist;
 
-    var collection = sinon.stub(mongo,'collection'),
-    newCollection = {},
-    insert = sinon.stub(),
-    doc = [{wow:1},{test:2}];
+    var collection = sinon.stub(mongo, 'collection'),
+      newCollection = {},
+      insert = sinon.stub(),
+      doc = [{
+        wow: 1
+      }, {
+        test: 2
+      }];
 
     insert.callsArg(2);
     newCollection.insert = insert;
     collection.withArgs('auction').returns(newCollection);
 
-    database.insertDump(doc,42,function(){
-      newCollection.insert.calledWith([{wow:1, timestamp:42},{test:2, timestamp:42}]).should.be.true;
-      database.__get__('mongoDb').collection.restore();
-      done();
-    });
+    return database.insertDump(doc, 42)
+      .then(function() {
+        newCollection.insert.calledWith([{
+          wow: 1,
+          timestamp: 42
+        }, {
+          test: 2,
+          timestamp: 42
+        }]).should.be.true;
+        database.__get__('mongoDb').collection.restore();
+      });
   });
 
-  it('close should call mongo connection close', function (done) {
+  it('close should call mongo connection close', function(done) {
     var mongo = database.__get__('mongoDb');
-    mongo.should.be.ok;
+    mongo.should.exist;
 
-    var close = sinon.stub(mongo,'close');
+    var close = sinon.stub(mongo, 'close');
 
-    database.close(function(err){
-      should(err).not.be.ok;
-      close.called.should.be.true;
-      database.__get__('mongoDb').close.restore();
-      done();
-    });
+    return database.close()
+      .then(function() {
+        close.called.should.be.true;
+        database.__get__('mongoDb').close.restore();
+      });
   });
 
-  it('count should counts auction item', function (done) {
+  it('count should counts auction item', function(done) {
     var mongo = database.__get__('mongoDb');
-    mongo.should.be.ok;
+    mongo.should.exist;
 
-    var collection = sinon.stub(mongo,'collection'),
-    newCollection = {},
-    count = sinon.stub();
+    var collection = sinon.stub(mongo, 'collection'),
+      newCollection = {},
+      count = sinon.stub();
 
     count.callsArg(0);
     newCollection.count = count;
     collection.withArgs('auction').returns(newCollection);
 
-    database.count('grim-batol',function(err, doc) {
-      collection.calledWith('auction').should.be.true;
-      count.called.should.be.true;
-      database.__get__('mongoDb').collection.restore();
-      done();
-    });
-  });
-
-  it('count should counts for a given server', function (done) {
-    true.should.not.be.ok;
-    done();
-  });
-
-  it('find item, on error, only returns an error object', function (done) {
-    var mongo = database.__get__('mongoDb');
-    mongo.should.be.ok;
-
-    var collection = sinon.stub(mongo,'collection'),
-    newCollection = {},
-    findOne = sinon.stub(),
-    id = 'foo';
-
-    findOne.callsArgWithAsync(1,'foo bar error');
-    newCollection.findOne = findOne;
-    collection.withArgs('items').returns(newCollection);
-
-    database.getItem(id,function(err, doc) {
-      should(err).should.exist;
-      should(doc).should.not.exist;
-      database.__get__('mongoDb').collection.restore();
-      done();
-    });
-  });
-
-  it('find item, on success, doesn\'t return an error, but returns the item', function (done) {
-    var mongo = database.__get__('mongoDb');
-    mongo.should.be.ok;
-
-    var collection = sinon.stub(mongo,'collection'),
-    newCollection = {},
-    findOne = sinon.stub(),
-    id = 'foo',
-    obj = {foo:'bar'};
-
-    findOne.callsArgWithAsync(1,null,obj);
-    newCollection.findOne = findOne;
-    collection.withArgs('items').returns(newCollection);
-
-    database.getItem(id,function(err, doc) {
-      should(err).should.not.exist;
-      should(doc).should.exist;
-      database.__get__('mongoDb').collection.restore();
-      done();
-    });
-  });
-
-  it('contain item, on error, only returns an error object', function (done) {
-    var mongo = database.__get__('mongoDb');
-    mongo.should.be.ok;
-
-    var collection = sinon.stub(mongo,'collection'),
-    newCollection = {},
-    findOne = sinon.stub(),
-    id = 'foo';
-
-    findOne.callsArgWithAsync(1,'foo bar error');
-    newCollection.findOne = findOne;
-    collection.withArgs('items').returns(newCollection);
-
-    database.containItem(id,function(err, doc) {
-      should(err).should.exist;
-      should(doc).should.not.exist;
-      database.__get__('mongoDb').collection.restore();
-      done();
-    });
-  });
-
-  it('contain item, on success, doesn\'t return an error, but returns a bool', function (done) {
-    var mongo = database.__get__('mongoDb');
-    mongo.should.be.ok;
-
-    var collection = sinon.stub(mongo,'collection'),
-    newCollection = {},
-    findOne = sinon.stub(),
-    id = 'foo',
-    obj = {foo:'bar'};
-
-    findOne.callsArgWithAsync(1,null,obj);
-    newCollection.findOne = findOne;
-    collection.withArgs('items').returns(newCollection);
-
-    database.containItem(id,function(err, doc) {
-      should(err).should.not.exist;
-      (_.isBoolean(doc)).should.be.true;
-
-      //tests when the object is not found
-      obj=null;
-      findOne.callsArgWithAsync(1,null,obj);
-      newCollection.findOne = findOne;
-      collection.withArgs('items').returns(newCollection);
-
-      database.containItem(id,function(err, doc) {
-        should(err).should.not.exist;
-        (_.isBoolean(doc)).should.be.true;
+    return database.count('grim-batol')
+      .then(function(err, doc) {
+        collection.calledWith('auction').should.be.true;
+        count.called.should.be.true;
         database.__get__('mongoDb').collection.restore();
-        done();
       });
-    });
   });
 
-  it('should do a mock to see if the DB receive the insert', function (done) {
-    true.should.not.be.ok;
+  it('count should counts for a given server', function(done) {
+    true.should.not.be.true;
     done();
   });
 
-  it('connected should always return a bool', function (done) {
-    database.connected(function(res) {
-      (_.isBoolean(res)).should.be.true;
+  it('find item, on error, should only returns an NotFoundError', function(
+    done) {
+    var mongo = database.__get__('mongoDb');
+    mongo.should.exist;
 
-      var mongo = database.__get__('mongoDb');
-      mongo.should.be.ok;
+    var collection = sinon.stub(mongo, 'collection'),
+      newCollection = {},
+      findOne = sinon.stub(),
+      id = 'foo';
 
-      database.__set__('mongoDb',null);
+    findOne.callsArgWithAsync(1);
+    newCollection.findOne = findOne;
+    collection.withArgs('items').returns(newCollection);
 
-      database.connected(function(res) {
-        (_.isBoolean(res)).should.be.true;
-        database.__set__('mongoDb',mongo);
-        done();
+    return database.getItem(id)
+      .then(function(doc) {
+        database.__get__('mongoDb').collection.restore();
+        assert.fail(doc, null, 'Shouldn\'t succeed');
+      }).catch(function(err) {
+        database.__get__('mongoDb').collection.restore();
+        err.should.exist;
+        err.should.to.have.property('name', 'NotFoundError');
       });
-    });
   });
 
-  it('pushItemQueue should try to add the item in mongo', function (done) {
-    true.should.not.be.ok;
-    done();
+  it('find item should return an item', function(done) {
+    var mongo = database.__get__('mongoDb');
+    mongo.should.exist;
+
+    var collection = sinon.stub(mongo, 'collection'),
+      newCollection = {},
+      findOne = sinon.stub(),
+      id = 'foo',
+      obj = {
+        foo: 'bar'
+      };
+
+    findOne.callsArgWithAsync(1, null, obj);
+    newCollection.findOne = findOne;
+    collection.withArgs('items').returns(newCollection);
+
+    return database.getItem(id)
+      .then(function(doc) {
+        doc.should.exist;
+        database.__get__('mongoDb').collection.restore();
+      });
   });
-  it('popItemQueue should return an object from the queue', function (done) {
+
+  it('contain item, on error, should only returns an error', function(done) {
+    var mongo = database.__get__('mongoDb');
+    mongo.should.exist;
+
+    var collection = sinon.stub(mongo, 'collection'),
+      newCollection = {},
+      findOne = sinon.stub(),
+      id = 'foo';
+
+    findOne.callsArgWithAsync(1, 'foo bar error');
+    newCollection.findOne = findOne;
+    collection.withArgs('items').returns(newCollection);
+
+    return database.containItem(id)
+      .then(function(doc) {
+        assert.fail(doc, null, 'Shouldn\'t succeed');
+        database.__get__('mongoDb').collection.restore();
+      }).catch(function(err) {
+        err.should.exist;
+        database.__get__('mongoDb').collection.restore();
+      });
+  });
+
+  it('contain item, should returns true on success', function(done) {
+    var mongo = database.__get__('mongoDb');
+    mongo.should.exist;
+
+    var collection = sinon.stub(mongo, 'collection'),
+      newCollection = {},
+      findOne = sinon.stub(),
+      id = 'foo',
+      obj = {
+        foo: 'bar'
+      };
+
+    findOne.callsArgWithAsync(1, null, obj);
+    newCollection.findOne = findOne;
+    collection.withArgs('items').returns(newCollection);
+
+    return database.containItem(id)
+      .then(function(doc) {
+        doc.should.be.true;
+
+        database.__get__('mongoDb').collection.restore();
+      });
+  });
+
+  it('contain item, should returns false on failure', function(done) {
+    var mongo = database.__get__('mongoDb');
+    mongo.should.exist;
+
+    var collection = sinon.stub(mongo, 'collection'),
+      newCollection = {},
+      findOne = sinon.stub(),
+      id = 'foo',
+      obj = null;
+
+    findOne.callsArgWithAsync(1, null, obj);
+    newCollection.findOne = findOne;
+    collection.withArgs('items').returns(newCollection);
+
+    return database.containItem(id)
+      .then(function(doc) {
+        doc.should.be.false;
+
+        database.__get__('mongoDb').collection.restore();
+      });
+  });
+
+  it('should do a mock to see if the DB receive the insert', function() {
     true.should.not.be.ok;
-    done();
+  });
+
+  it('pushItemQueue should try to add the item in mongo', function(done) {
+    true.should.not.be.ok;
+  });
+  it('popItemQueue should return an object from the queue', function(done) {
+    true.should.not.be.ok;
   });
 });

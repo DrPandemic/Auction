@@ -1,32 +1,33 @@
 "use strict";
 
 var dataProcess = {},
-    mongoClient = require('mongodb').MongoClient,
-    logger = require('../logger'),
-    mongoDb = null,
-    async = require('async'),
-    _ = require('underscore'),
-    sorts = {},
-    reducers = {},
-    servers = [],
-    tQueueItem = 'itemQueue',
-    Promise = require('bluebird');
+  mongoClient = require('mongodb').MongoClient,
+  logger = require('../logger'),
+  mongoDb = null,
+  async = require('async'),
+  _ = require('underscore'),
+  sorts = {},
+  reducers = {},
+  servers = [],
+  tQueueItem = 'itemQueue',
+  Promise = require('bluebird'),
+  NotFoundError = require('./errors').NotFoundError;
 
-  sorts.double = {};
+sorts.double = {};
 
-sorts.asc = function(a,b) {
+sorts.asc = function(a, b) {
   return a.value - b.value;
 };
-sorts.double.asc = function(a,b) {
+sorts.double.asc = function(a, b) {
   return a.value.value - b.value.value;
 };
-sorts.double.des = function(b,a) {
+sorts.double.des = function(b, a) {
   return a.value.value - b.value.value;
 };
-sorts.des = function(b,a) {
+sorts.des = function(b, a) {
   return a.value - b.value;
 };
-sorts.void = function(b,a) {
+sorts.void = function(b, a) {
   return false;
 };
 reducers.normal = function(key, values) {
@@ -43,7 +44,7 @@ reducers.double = function(key, values) {
 
 function ensureDB() {
   return new Promise(function(resolve, reject) {
-    if(!mongoDb)
+    if (!mongoDb)
       reject(new Error("There was an error with the DB connection"));
     else
       resolve();
@@ -53,31 +54,45 @@ function ensureDB() {
 function ensureIndex() {
   return new Promise(function(resolve, reject) {
     var collection = mongoDb.collection('auction');
-    collection.ensureIndex({auc : 1, ownerRealm : 1, timestamp : 1},{ unique: true }, function(err,res) {
-      if(err) {
+    collection.ensureIndex({
+      auc: 1,
+      ownerRealm: 1,
+      timestamp: 1
+    }, {
+      unique: true
+    }, function(err, res) {
+      if (err) {
         reject(new Error(err));
         return;
-      }
-      else
-        logger.log(1,'Unique index for auction id was added : '+res);
+      } else
+        logger.log(1, 'Unique index for auction id was added : ' + res);
       collection = mongoDb.collection('items');
       //Add unique index
-      collection.ensureIndex({id : 1},{ unique: true }, function(err,res) {
-        if(err) {
+      collection.ensureIndex({
+        id: 1
+      }, {
+        unique: true
+      }, function(err, res) {
+        if (err) {
           reject(new Error(err));
           return;
-        }
-        else
-          logger.log(1,'Unique index for item id was added : '+res);
+        } else
+          logger.log(1, 'Unique index for item id was added : ' +
+            res);
 
         collection = mongoDb.collection(tQueueItem);
-        collection.ensureIndex({id : 1},{ unique: true }, function(err,res) {
-          if(err) {
+        collection.ensureIndex({
+          id: 1
+        }, {
+          unique: true
+        }, function(err, res) {
+          if (err) {
             reject(new Error(err));
             return;
-          }
-          else
-            logger.log(1,'Unique index for item queue id was added : '+res);
+          } else
+            logger.log(1,
+              'Unique index for item queue id was added : ' +
+              res);
           resolve();
         });
       });
@@ -89,16 +104,21 @@ function sum(server, mapper, reducer, sort) {
   var fn = function() {
     return new Promise(function(resolve, reject) {
       var options = {
-        query: {ownerRealm:server},
-        out: {inline:1}
+        query: {
+          ownerRealm: server
+        },
+        out: {
+          inline: 1
+        }
       };
       var collection = mongoDb.collection('auction');
-      logger.log(1,'Starting map reduce');
+      logger.log(1, 'Starting map reduce');
 
-      collection.mapReduce(mapper, reducer, options, function(err, results) {
-        if(err)
+      collection.mapReduce(mapper, reducer, options, function(err,
+        results) {
+        if (err)
           reject(new Error(err));
-        else if(_.isEmpty(results))
+        else if (_.isEmpty(results))
           reject(new Error('The result was empty'));
         else {
           results.sort(sort);
@@ -120,7 +140,11 @@ dataProcess.insert = function(document, collectionName) {
     return new Promise(function(resolve, reject) {
       var collection = mongoDb.collection(collectionName);
       logger.log(2, 'Inserting...');
-      collection.insert(document, {continueOnError: true, safe: true, w:1}, function(err, result) {
+      collection.insert(document, {
+        continueOnError: true,
+        safe: true,
+        w: 1
+      }, function(err, result) {
         //We ignore error, because duplicates will trigger errors
         resolve(document);
       });
@@ -131,7 +155,7 @@ dataProcess.insert = function(document, collectionName) {
 };
 
 dataProcess.insertDump = function(document, timestamp) {
-  if(!_.isArray(document))
+  if (!_.isArray(document))
     document = [document];
   //Add timestamp to every elements
   document.forEach(function(item) {
@@ -140,14 +164,12 @@ dataProcess.insertDump = function(document, timestamp) {
   return this.insert(document, 'auction');
 };
 
-dataProcess.pushItemQueue = function(item, callback) {
-};
-dataProcess.popItemQueue = function(item, callback) {
-};
+dataProcess.pushItemQueue = function(item, callback) {};
+dataProcess.popItemQueue = function(item, callback) {};
 
 dataProcess.close = function() {
   return ensureDB().then(function() {
-    logger.log(0,'Closing DB connection');
+    logger.log(0, 'Closing DB connection');
     mongoDb.close();
     return Promise.resolve();
   });
@@ -158,8 +180,8 @@ dataProcess.count = function(server) {
   var fn = function() {
     return new Promise(function(resolve, reject) {
       var collection = mongoDb.collection('auction');
-      collection.count(function(err,results) {
-        if(err)
+      collection.count(function(err, results) {
+        if (err)
           reject(err);
         else
           resolve(results);
@@ -174,9 +196,13 @@ dataProcess.getItem = function(itemID) {
   var fn = function() {
     return new Promise(function(resolve, reject) {
       var collection = mongoDb.collection('items');
-      collection.findOne({id:itemID}, function(err, item) {
-        if(err || !item)
+      collection.findOne({
+        id: itemID
+      }, function(err, item) {
+        if (err)
           reject(new Error(err));
+        else if (!item)
+          reject(new NotFoundError());
         else
           resolve(item);
       });
@@ -187,11 +213,21 @@ dataProcess.getItem = function(itemID) {
 };
 
 dataProcess.containItem = function(itemID, callback) {
-  return dataProcess.getItem(itemID).then(function(res) {
-    return new Promise(function(resolve, reject) {
-      resolve(res ? true : false);
+  var resolve,
+    reject,
+    promise = new Promise(function(res, rej) {
+      resolve = res;
+      reject = rej;
     });
+  dataProcess.getItem(itemID).then(function() {
+    resolve(true);
+  }).catch(NotFoundError, function(e) {
+    resolve(false);
+  }).catch(function(e) {
+    reject(e);
   });
+
+  return promise;
 };
 
 dataProcess.insertItem = function(item) {
@@ -201,8 +237,8 @@ dataProcess.insertItem = function(item) {
 dataProcess.init = function() {
   return new Promise(function(resolve, reject) {
     mongoClient.connect("mongodb://localhost:27017/wow", function(err, db) {
-      logger.log(0,'Connecting to MongoDB');
-      if(err) {
+      logger.log(0, 'Connecting to MongoDB');
+      if (err) {
         reject(new Error(err));
         return;
       }
@@ -217,11 +253,12 @@ dataProcess.init = function() {
     return new Promise(function(resolve, reject) {
       var collection = mongoDb.collection('servers');
       collection.find().toArray(function(err, items) {
-        if(err) {
-          reject(new Error('There was an error while getting the server list'));
+        if (err) {
+          reject(new Error(
+            'There was an error while getting the server list'));
           return;
         }
-        logger.log(2,items);
+        logger.log(2, items);
         servers = items;
         resolve();
       });
@@ -232,7 +269,7 @@ dataProcess.init = function() {
 dataProcess.getSalesOccurence = function(server) {
   return sum(server,
     function() {
-      emit(this.item,1);
+      emit(this.item, 1);
     },
     reducers.normal,
     sorts.des);
@@ -240,8 +277,11 @@ dataProcess.getSalesOccurence = function(server) {
 
 dataProcess.getSalesValueBuyout = function(server) {
   return sum(server,
-    function(){
-      emit(this.item,{amount : 1 , value : this.buyout});
+    function() {
+      emit(this.item, {
+        amount: 1,
+        value: this.buyout
+      });
     },
     reducers.double,
     sorts.double.des);
@@ -249,8 +289,8 @@ dataProcess.getSalesValueBuyout = function(server) {
 
 dataProcess.getSalesValueBid = function(server) {
   return sum(server,
-    function(){
-      emit(this.item,this.bid);
+    function() {
+      emit(this.item, this.bid);
     },
     reducers.normal,
     sorts.asc);

@@ -171,22 +171,16 @@ describe('wow-api', function() {
         }).should.be.rejected;
     });
 
-    it.skip('should be able to get auction dump with queryWithRetry',
-      function() {
-        this.timeout(20 * 1000);
-        return wowApi.queryWithRetry('grim-batol', 3);
-      });
-
     it('should only retry the good amount of times', function() {
       var backup = wowApi.query;
       var stub = sinon.stub().rejects();
       wowApi.query = stub;
       return wowApi.queryWithRetry('grim-batol', 3)
-      .catch(function() {
-        wowApi.query = backup;
-        stub.callCount.should.be.equal(4);
-        return Promise.resolve;
-      });
+        .catch(function() {
+          wowApi.query = backup;
+          stub.callCount.should.be.equal(4);
+          return Promise.resolve;
+        });
     });
 
     it('should only called once when retry = 0', function() {
@@ -194,11 +188,62 @@ describe('wow-api', function() {
       var stub = sinon.stub().rejects();
       wowApi.query = stub;
       return wowApi.queryWithRetry('grim-batol', 0)
-      .catch(function() {
-        wowApi.query = backup;
-        stub.callCount.should.be.equal(1);
-        return Promise.resolve;
+        .catch(function() {
+          wowApi.query = backup;
+          stub.callCount.should.be.equal(1);
+          return Promise.resolve;
+        });
+    });
+  });
+
+  describe('getItem', function() {
+    it('should succeed when the query succeed', function() {
+      var client = {
+          get: function(url, cb) {
+            cb(require('./data/pet-cage'), {
+              statusCode: 200
+            });
+          }
+        },
+        backup = wowApi.__get__('client');
+      wowApi.__set__('client', client);
+
+      return wowApi.getItem().
+      finally(function() {
+        wowApi.__set__('client', backup);
+      }).should.become(require('./data/pet-cage'));
+    });
+    it('should be rejected when the query returns an error', function() {
+      var client = {
+          get: function(url, cb) {
+            cb(require('./data/pet-cage'), {
+              statusCode: 400
+            });
+          }
+        },
+        backup = wowApi.__get__('client');
+      wowApi.__set__('client', client);
+
+      return wowApi.getItem().
+      finally(function() {
+        wowApi.__set__('client', backup);
+      }).should.be.rejected;
+    });
+  });
+
+  describe.skip('real data', function() {
+    it('should be able to get auction dump with queryWithRetry',
+      function() {
+        this.timeout(10 * 1000);
+        return wowApi.queryWithRetry('grim-batol', 3);
       });
+
+    it('should be able to get an item (pet cage)', function() {
+      return wowApi.getItem(82800);
+    });
+
+    it('should fails when the object doesn\'t exists', function() {
+      return wowApi.getItem(8280000000).should.be.rejected;
     });
   });
 

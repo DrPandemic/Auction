@@ -11,7 +11,7 @@ var rewire = require("rewire"),
   connErr = null,
   Promise = require('bluebird'),
   NotFoundError = require('../src/crawler/lib/errors').NotFoundError,
-  petCage = require('./data/petCage');
+  petCage = require('./data/pet-cage');
 
 
 require("mocha-as-promised")();
@@ -492,11 +492,11 @@ describe('database', function() {
       });
     });
 
-    describe('map-reduce', function() {
+    describe.skip('map-reduce', function() {
       function insertAuctions() {
         return database.insertDump(require('./data/auctions'));
       }
-      it.skip('should get the right sale occurence', function() {
+      it('should get the right sale occurence', function() {
         return insertAuctions()
           .then(function() {
             return database.getSalesOccurence('GrimBatol');
@@ -511,7 +511,7 @@ describe('database', function() {
             value: 1
           }]);
       });
-      it.skip('should get the right sale value at buyout', function() {
+      it('should get the right sale value at buyout', function() {
         return insertAuctions()
           .then(function() {
             return database.getSalesValueBuyout('GrimBatol');
@@ -536,7 +536,7 @@ describe('database', function() {
           }]);
       });
       //It crashes mongodb...
-      it.skip('should get the right sale value at bid', function() {
+      it('should get the right sale value at bid', function() {
         return insertAuctions()
           .then(function() {
             return database.getSalesValueBid('GrimBatol');

@@ -85,7 +85,7 @@ wowApi.queryWithRetry = function(server, retry) {
     });
 };
 
-wowApi.getItem = function(itemID, callback) {
+wowApi.getItem = function(itemID) {
   logger.log(2, 'Sent request to wow item api for ' + itemID);
   return new Promise(function(resolve, reject) {
     client.get(item_url + itemID + query, function(data, response) {

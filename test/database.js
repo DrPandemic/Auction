@@ -406,13 +406,6 @@ describe('database', function() {
     });
   });
 
-  it('pushItemQueue should try to add the item in mongo', function() {
-    true.should.not.be.ok;
-  });
-  it('popItemQueue should return an object from the queue', function() {
-    true.should.not.be.ok;
-  });
-
   describe('real DB', function() {
     it('should insert an object', function() {
       return database.insert({

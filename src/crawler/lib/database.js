@@ -165,9 +165,6 @@ dataProcess.insertDump = function(document, timestamp) {
   return this.insert(document, 'auction');
 };
 
-dataProcess.pushItemQueue = function(item, callback) {};
-dataProcess.popItemQueue = function(item, callback) {};
-
 dataProcess.close = function() {
   return ensureDB().then(function() {
     logger.log(0, 'Closing DB connection');

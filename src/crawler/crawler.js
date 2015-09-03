@@ -20,6 +20,8 @@ database.init()
  .catch(catchError);
 
 function start() {
+  //TODO : Here it's simply to do something while abathur isn't done
+  queue.send('crawler', 'grim-batol');
   listenTokens = queue.listen('crawler', function(server) {
     query(server,0)
      .then(function(auctions) {

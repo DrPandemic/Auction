@@ -1,0 +1,64 @@
+{
+    "id" : 82800,
+    "description" : "",
+    "name" : "Pet Cage",
+    "icon" : "inv_box_petcarrier_01",
+    "stackable" : 1,
+    "itemBind" : 0,
+    "bonusStats" : [],
+    "itemSpells" : [
+        {
+            "spellId" : 123302,
+            "spell" : {
+                "id" : 123302,
+                "name" : "Uncage Pet",
+                "icon" : "inv_box_birdcage_01",
+                "description" : "Teaches you how to summon this companion.",
+                "castTime" : "Instant"
+            },
+            "nCharges" : 0,
+            "consumable" : false,
+            "categoryId" : 0,
+            "trigger" : "ON_USE"
+        }
+    ],
+    "buyPrice" : 0,
+    "itemClass" : 17,
+    "itemSubClass" : 0,
+    "containerSlots" : 0,
+    "inventoryType" : 0,
+    "equippable" : false,
+    "itemLevel" : 20,
+    "maxCount" : 0,
+    "maxDurability" : 0,
+    "minFactionId" : 0,
+    "minReputation" : 0,
+    "quality" : 3,
+    "sellPrice" : 0,
+    "requiredSkill" : 0,
+    "requiredLevel" : 0,
+    "requiredSkillRank" : 0,
+    "itemSource" : {
+        "sourceId" : 0,
+        "sourceType" : "NONE"
+    },
+    "baseArmor" : 0,
+    "hasSockets" : false,
+    "isAuctionable" : true,
+    "armor" : 0,
+    "displayInfoId" : 0,
+    "nameDescription" : "",
+    "nameDescriptionColor" : "000000",
+    "upgradable" : true,
+    "heroicTooltip" : false,
+    "context" : "",
+    "bonusLists" : [],
+    "availableContexts" : [
+        ""
+    ],
+    "bonusSummary" : {
+        "defaultBonusLists" : [],
+        "chanceBonusLists" : [],
+        "bonusChances" : []
+    }
+}

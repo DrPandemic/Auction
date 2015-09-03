@@ -100,6 +100,7 @@ function ensureIndex() {
   });
 }
 
+// Do a Map-Reduce on the auction collection
 function sum(server, mapper, reducer, sort) {
   var fn = function() {
     return new Promise(function(resolve, reject) {
@@ -114,8 +115,7 @@ function sum(server, mapper, reducer, sort) {
       var collection = mongoDb.collection('auction');
       logger.log(1, 'Starting map reduce');
 
-      collection.mapReduce(mapper, reducer, options, function(err,
-        results) {
+      collection.mapReduce(mapper, reducer, options, function(err, results) {
         if (err)
           reject(new Error(err));
         else if (_.isEmpty(results))
@@ -145,6 +145,7 @@ dataProcess.insert = function(document, collectionName) {
         safe: true,
         w: 1
       }, function(err, result) {
+        //TODO : Stop on certain type of errors
         //We ignore error, because duplicates will trigger errors
         resolve(document);
       });
@@ -212,7 +213,7 @@ dataProcess.getItem = function(itemID) {
   return ensureDB().then(fn);
 };
 
-dataProcess.containItem = function(itemID, callback) {
+dataProcess.containItem = function(itemID) {
   var resolve,
     reject,
     promise = new Promise(function(res, rej) {
@@ -234,9 +235,9 @@ dataProcess.insertItem = function(item) {
   return ensureDB().then(dataProcess.insert(item, 'items'));
 };
 
-dataProcess.init = function() {
+dataProcess.init = function(tableName) {
   return new Promise(function(resolve, reject) {
-    mongoClient.connect("mongodb://localhost:27017/wow", function(err, db) {
+    mongoClient.connect('mongodb://localhost:27017/' + (tableName || 'wow') , function(err, db) {
       logger.log(0, 'Connecting to MongoDB');
       if (err) {
         reject(new Error(err));

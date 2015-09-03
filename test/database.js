@@ -10,7 +10,8 @@ var rewire = require("rewire"),
   database = null,
   connErr = null,
   Promise = require('bluebird'),
-  NotFoundError = require('../src/crawler/lib/errors').NotFoundError;
+  NotFoundError = require('../src/crawler/lib/errors').NotFoundError,
+  petCage = require('./petCage');
 
 
 require("mocha-as-promised")();
@@ -21,13 +22,38 @@ chai.use(chaiAsPromised);
 before(function(done) {
   database = rewire('../src/crawler/lib/database');
   database.__get__('logger').verbose = -1;
-  database.init().then(function() {
-    done();
+  database.init('wowTest').then(function() {
+    cleanDb(done);
   }).catch(function(err) {
     connErr = err;
     done();
   });
 });
+
+afterEach(function(done) {
+  cleanDb(done);
+});
+
+function cleanDb(cb) {
+  var db = database.__get__('mongoDb');
+  db.collection('auction').remove(function(e) {
+    if (e)
+      console.error(e);
+    db.collection('itemQueue').remove(function(e) {
+      if (e)
+        console.error(e);
+      db.collection('items').remove(function(e) {
+        if (e)
+          console.error(e);
+        cb();
+      });
+    });
+  });
+}
+
+function insertPetCage() {
+  return database.insertItem(petCage);
+}
 
 describe('database', function() {
   it('should not return an error', function() {
@@ -38,7 +64,7 @@ describe('database', function() {
     return database.connected().should.be.fulfilled;
   });
 
-  it('should test connection before every method calls', function(done) {
+  it('should test connection before every method calls', function() {
     var mongo = database.__get__('mongoDb'),
       str = "There was an error with the DB connection";
     database.__set__('mongoDb', null);
@@ -74,7 +100,7 @@ describe('database', function() {
   });
 
   describe('close', function() {
-    it('should call mongo connection close', function(done) {
+    it('should call mongo connection close', function() {
       var mongo = database.__get__('mongoDb');
       mongo.should.exist;
 
@@ -89,7 +115,7 @@ describe('database', function() {
   });
 
   describe('insert', function() {
-    it('should use a collection', function(done) {
+    it('should use a collection', function() {
       var mongo = database.__get__('mongoDb');
       mongo.should.exist;
 
@@ -110,7 +136,7 @@ describe('database', function() {
         });
     });
 
-    it('should insert a array', function(done) {
+    it('should insert a array', function() {
       var mongo = database.__get__('mongoDb');
       mongo.should.exist;
 
@@ -134,7 +160,7 @@ describe('database', function() {
         });
     });
 
-    it('should insert a object', function(done) {
+    it('should insert a object', function() {
       var mongo = database.__get__('mongoDb');
       mongo.should.exist;
 
@@ -157,8 +183,7 @@ describe('database', function() {
     });
 
     describe('dump', function() {
-      it('should succeed even whitout an array', function(
-        done) {
+      it('should succeed even whitout an array', function() {
         var mongo = database.__get__('mongoDb');
         mongo.should.exist;
 
@@ -180,7 +205,7 @@ describe('database', function() {
           });
       });
 
-      it('should adds timestamp', function(done) {
+      it('should adds timestamp', function() {
         var mongo = database.__get__('mongoDb');
         mongo.should.exist;
 
@@ -213,7 +238,7 @@ describe('database', function() {
   });
 
   describe('count', function() {
-    it('should counts auction item', function(done) {
+    it('should counts auction item', function() {
       var mongo = database.__get__('mongoDb');
       mongo.should.exist;
 
@@ -226,24 +251,22 @@ describe('database', function() {
       collection.withArgs('auction').returns(newCollection);
 
       return database.count('grim-batol')
-        .then(function(err, doc) {
+        .then(function() {
           collection.calledWith('auction').should.be.true;
           count.called.should.be.true;
           database.__get__('mongoDb').collection.restore();
         });
     });
 
-    it('should counts for a given server', function(done) {
+    it('should counts for a given server', function() {
       true.should.not.be.true;
-      done();
     });
   });
 
   describe('find', function() {
     it(
       'should only returns an NotFoundError on when not finding an item',
-      function(
-        done) {
+      function() {
         var mongo = database.__get__('mongoDb');
         mongo.should.exist;
 
@@ -267,7 +290,7 @@ describe('database', function() {
           });
       });
 
-    it('should return an item', function(done) {
+    it('should return an item', function() {
       var mongo = database.__get__('mongoDb');
       mongo.should.exist;
 
@@ -290,8 +313,7 @@ describe('database', function() {
         });
     });
 
-    it('should returns an error when an error occurs', function(
-      done) {
+    it('should returns an error when an error occurs', function() {
       var mongo = database.__get__('mongoDb');
       mongo.should.exist;
 
@@ -317,8 +339,7 @@ describe('database', function() {
   });
 
   describe('contain', function() {
-    it('should returns an error when an error occurs', function(
-      done) {
+    it('should returns an error when an error occurs', function() {
       var mongo = database.__get__('mongoDb');
       mongo.should.exist;
 
@@ -341,7 +362,7 @@ describe('database', function() {
         });
     });
 
-    it('should returns true on success', function(done) {
+    it('should returns true on success', function() {
       var mongo = database.__get__('mongoDb');
       mongo.should.exist;
 
@@ -365,7 +386,7 @@ describe('database', function() {
         });
     });
 
-    it('contain item, should returns false on failure', function(done) {
+    it('contain item, should returns false on failure', function() {
       var mongo = database.__get__('mongoDb');
       mongo.should.exist;
 
@@ -388,10 +409,148 @@ describe('database', function() {
     });
   });
 
-  it('pushItemQueue should try to add the item in mongo', function(done) {
+  it('pushItemQueue should try to add the item in mongo', function() {
     true.should.not.be.ok;
   });
-  it('popItemQueue should return an object from the queue', function(done) {
+  it('popItemQueue should return an object from the queue', function() {
     true.should.not.be.ok;
+  });
+
+  describe('real DB', function() {
+    it('should insert an object', function() {
+      return database.insert({
+          test: 1
+        }, 'auction')
+        .then(database.count)
+        .should.become(1);
+    });
+    it('should insert an array', function() {
+      var doc = [{
+        auc: 10,
+        ownerRealm: 'a',
+        timestamp: 1
+      }, {
+        auc: 11,
+        ownerRealm: 'a',
+        timestamp: 1
+      }];
+      return database.insert(doc, 'auction')
+        .then(database.count)
+        .should.become(doc.length);
+    });
+    it('should insert a dump', function() {
+      var doc = [{
+        auc: 10,
+        ownerRealm: 'a'
+      }, {
+        auc: 11,
+        ownerRealm: 'a'
+      }];
+      return database.insert(doc, 'auction')
+        .then(database.count)
+        .should.become(doc.length);
+    });
+    it('should insert a dump even with one object', function() {
+      var doc = [{
+        auc: 10,
+        ownerRealm: 'a'
+      }];
+      return database.insert(doc, 'auction')
+        .then(database.count)
+        .should.become(doc.length);
+    });
+
+    describe('items', function() {
+      it('should be able to get the pet cage', function() {
+        return insertPetCage()
+          .then(function() {
+            return database.getItem(82800)
+              .should.eventually.have.property('name',
+                'Pet Cage');
+          });
+      });
+      it('should fail to get not inserted item', function() {
+        return insertPetCage()
+          .then(function() {
+            return database.getItem(0)
+              .should.be.rejected;
+          });
+      });
+      it('should contains the pet cage', function() {
+        return insertPetCage()
+          .then(function() {
+            return database.containItem(82800)
+              .should.become(true);
+          });
+      });
+      it('should not contains not inserted item', function() {
+        return insertPetCage()
+          .then(function() {
+            return database.containItem(828004)
+              .should.become(false);
+          });
+      });
+    });
+
+    describe('map-reduce', function() {
+      function insertAuctions() {
+        return database.insertDump(require('./auctions'));
+      }
+      it('should get the right sale occurence', function() {
+        return insertAuctions()
+          .then(function() {
+            return database.getSalesOccurence('GrimBatol');
+          }).should.become([{
+            _id: 37770,
+            value: 2
+          }, {
+            _id: 821,
+            value: 1
+          }, {
+            _id: 16817,
+            value: 1
+          }]);
+      });
+      it('should get the right sale value at buyout', function() {
+        return insertAuctions()
+          .then(function() {
+            return database.getSalesValueBuyout('GrimBatol');
+          }).should.become([{
+            _id: 821,
+            value: {
+              amount: 1,
+              value: 5703747
+            }
+          }, {
+            _id: 16817,
+            value: {
+              amount: 1,
+              value: 3119999
+            }
+          }, {
+            _id: 37770,
+            value: {
+              amount: 2,
+              value: 1018998
+            }
+          }]);
+      });
+      it('should get the right sale value at bid', function() {
+        return insertAuctions()
+          .then(function() {
+            return database.getSalesValueBid('GrimBatol');
+          }).should.become([{
+            _id: 37770,
+            value: 949098
+          }, {
+            _id: 16817,
+            value: 2963999
+          }, {
+            _id: 821,
+            value: 5418559
+          }]);
+      });
+    });
+
   });
 });

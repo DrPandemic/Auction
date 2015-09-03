@@ -1,1 +1,2 @@
-Create a new script made to add queries
+- Create a new script made to add queries
+- database.insert should not swallow all errors. Saw this error while inserting docs that don't follow indexes

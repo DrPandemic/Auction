@@ -13,8 +13,6 @@ var rewire = require('rewire'),
   NotFoundError = require('../src/crawler/lib/errors').NotFoundError,
   petCage = require('./data/pet-cage');
 
-require('mocha-as-promised')();
-
 var should = chai.Should();
 chai.use(chaiAsPromised);
 

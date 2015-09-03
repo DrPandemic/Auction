@@ -13,7 +13,6 @@ var rewire = require('rewire'),
   NotFoundError = require('../src/crawler/lib/errors').NotFoundError,
   rejecter = null;
 
-require('mocha-as-promised')();
 require('sinon-as-promised')(Promise);
 
 var should = chai.Should();

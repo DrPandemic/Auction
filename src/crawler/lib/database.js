@@ -232,12 +232,14 @@ dataProcess.containItem = function(itemID) {
 };
 
 dataProcess.insertItem = function(item) {
-  return ensureDB().then(dataProcess.insert(item, 'items'));
+  return ensureDB().then(function() {
+    return dataProcess.insert(item, 'items');
+  });
 };
 
 dataProcess.init = function(tableName) {
   return new Promise(function(resolve, reject) {
-    mongoClient.connect('mongodb://localhost:27017/' + (tableName || 'wow') , function(err, db) {
+    mongoClient.connect('mongodb://localhost:27017/' + (tableName || 'wow'), function(err, db) {
       logger.log(0, 'Connecting to MongoDB');
       if (err) {
         reject(new Error(err));

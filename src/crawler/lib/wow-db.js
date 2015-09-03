@@ -7,14 +7,19 @@ var wowDB = {},
   Promise = require('bluebird'),
   NotFoundError = require('./errors').NotFoundError;
 
-
 function ensureState() {
-  if (!wowApi || !database) {
-    logger.log(0, 'wow-db is not well initialized');
-    return Promise.reject(new Error('wow-db is not well initialized'));
-  } else {
-    return database.connected();
-  }
+  return new Promise(function(resolve, reject) {
+    if (!wowApi || !database) {
+      logger.log(0, 'wow-db is not well initialized');
+      reject(new Error('wow-db is not well initialized'));
+    } else {
+      database.connected()
+      .then(function() {
+        resolve();
+      })
+      .catch(reject);
+    }
+  });
 }
 
 wowDB.init = function(api, db) {
@@ -28,9 +33,8 @@ wowDB.getItem = function(itemID) {
     }).then(function(item) {
       return Promise.resolve(item);
     }).catch(NotFoundError, function() {
-      return wowApi.getItem(itemID)
-        .then(database.insertItem);
-    });
+      return wowApi.getItem(itemID);
+    }).then(database.insertItem);
 };
 
 

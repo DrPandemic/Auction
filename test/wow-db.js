@@ -24,22 +24,46 @@ chai.use(chaiAsPromised);
 before(function(done) {
   wowApi = rewire('../src/crawler/lib/wow-api');
   database = rewire('../src/crawler/lib/database');
-  database.init();
-  wowDb = rewire('../src/crawler/lib/wow-db');
-  wowApi.__get__('logger').verbose = -1;
-  database.__get__('logger').verbose = -1;
-  wowDb.__get__('logger').verbose = -1;
+  database.init('wowTest').then(function() {
+    cleanDb(function() {
+      wowDb = rewire('../src/crawler/lib/wow-db');
+      wowApi.__get__('logger').verbose = -1;
+      database.__get__('logger').verbose = -1;
+      wowDb.__get__('logger').verbose = -1;
 
-  wowDb.init(wowApi, database);
+      wowDb.init(wowApi, database);
 
-  rejecter = Promise.onPossiblyUnhandledRejection;
-  Promise.onPossiblyUnhandledRejection(undefined);
-  done();
+      rejecter = Promise.onPossiblyUnhandledRejection;
+      Promise.onPossiblyUnhandledRejection(undefined);
+      done();
+    });
+  });
 });
 
 after(function() {
   Promise.onPossiblyUnhandledRejection(rejecter);
 });
+
+afterEach(function(done) {
+  cleanDb(done);
+});
+
+function cleanDb(cb) {
+  var db = database.__get__('mongoDb');
+  db.collection('auction').remove(function(e) {
+    if (e)
+      console.error(e);
+    db.collection('itemQueue').remove(function(e) {
+      if (e)
+        console.error(e);
+      db.collection('items').remove(function(e) {
+        if (e)
+          console.error(e);
+        cb();
+      });
+    });
+  });
+}
 
 describe('wow-db', function() {
   describe('ensure state', function() {
@@ -72,26 +96,67 @@ describe('wow-db', function() {
       wowDb.__set__('wowApi', null);
       return wowDb.getItem(82800)
         .finally(function() {
-          wowDb.__set__('wowApi', database);
+          wowDb.__set__('wowApi', wowApi);
         }).should.be.rejected;
     });
   });
 
   describe('getItem', function() {
-    it(
-      'should directly succeed if the item is already present in the db',
+    it('should directly succeed if the item is already present in the db',
       function() {
-        return Promise.reject();
+        var backup = wowDb.__get__('wowApi').getItem,
+          stub = sinon.stub().resolves();
+        wowDb.__get__('wowApi').getItem = stub;
+
+        return database.insertItem(require('./data/pet-cage'))
+          .then(function() {
+            return wowDb.getItem(82800);
+          }).finally(function(res) {
+            wowDb.__get__('wowApi').getItem = backup;
+
+            stub.called.should.be.false;
+            return res;
+          }).should.become(require('./data/pet-cage'));
       });
+
     it('should ask the API if receive a NotFoundError', function() {
-      return Promise.reject();
+      var backup = wowDb.__get__('wowApi').getItem,
+        stub = sinon.stub().resolves(require('./data/pet-cage'));
+      wowDb.__get__('wowApi').getItem = stub;
+
+      return wowDb.getItem(82800)
+        .finally(function() {
+          wowDb.__get__('wowApi').getItem = backup;
+
+          stub.called.should.be.true;
+        });
     });
     it('should give an error when receive other errors', function() {
-      return Promise.reject();
+      var backup = wowDb.__get__('database').getItem,
+        stub = sinon.stub().rejects(new Error());
+      wowDb.__get__('database').getItem = stub;
+
+      return wowDb.getItem(82800)
+        .finally(function() {
+          wowDb.__get__('database').getItem = backup;
+        }).should.be.rejected;
     });
     it('should give an error if it was unable to save the object',
       function() {
-        return Promise.reject();
+        var backup = wowDb.__get__('database').insertItem,
+          stub = sinon.stub().rejects(new Error());
+        wowDb.__get__('database').insertItem = stub;
+
+        var getItemBackup = wowDb.__get__('wowApi').getItem,
+          getItemStub = sinon.stub().resolves(require('./data/pet-cage'));
+        wowDb.__get__('wowApi').getItem = getItemStub;
+
+        return wowDb.getItem(82800)
+          .finally(function() {
+            wowDb.__get__('database').insertItem = backup;
+            wowDb.__get__('wowApi').getItem = getItemBackup;
+
+          }).should.be.rejected;
       });
   });
 });

@@ -1,8 +1,8 @@
 "use strict";
 
-var rewire = require("rewire"),
-  chai = require("chai"),
-  chaiAsPromised = require("chai-as-promised"),
+var rewire = require('rewire'),
+  chai = require('chai'),
+  chaiAsPromised = require('chai-as-promised'),
   sinon = require('sinon'),
   async = require('async'),
   assert = chai.assert,
@@ -14,7 +14,7 @@ var rewire = require("rewire"),
   petCage = require('./data/pet-cage');
 
 
-require("mocha-as-promised")();
+require('mocha-as-promised')();
 
 var should = chai.Should();
 chai.use(chaiAsPromised);
@@ -66,7 +66,7 @@ describe('database', function() {
 
   it('should test connection before every method calls', function() {
     var mongo = database.__get__('mongoDb'),
-      str = "There was an error with the DB connection";
+      str = 'There was an error with the DB connection';
     database.__set__('mongoDb', null);
 
     //Silence the unhandled exceptions

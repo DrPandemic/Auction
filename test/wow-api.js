@@ -1,8 +1,8 @@
 "use strict";
 
-var rewire = require("rewire"),
-  chai = require("chai"),
-  chaiAsPromised = require("chai-as-promised"),
+var rewire = require('rewire'),
+  chai = require('chai'),
+  chaiAsPromised = require('chai-as-promised'),
   sinon = require('sinon'),
   async = require('async'),
   assert = chai.assert,
@@ -13,7 +13,7 @@ var rewire = require("rewire"),
   NotFoundError = require('../src/crawler/lib/errors').NotFoundError,
   rejecter = null;
 
-require("mocha-as-promised")();
+require('mocha-as-promised')();
 require('sinon-as-promised')(Promise);
 
 var should = chai.Should();
@@ -208,7 +208,7 @@ describe('wow-api', function() {
         backup = wowApi.__get__('client');
       wowApi.__set__('client', client);
 
-      return wowApi.getItem().
+      return wowApi.getItem(82800).
       finally(function() {
         wowApi.__set__('client', backup);
       }).should.become(require('./data/pet-cage'));
@@ -224,7 +224,7 @@ describe('wow-api', function() {
         backup = wowApi.__get__('client');
       wowApi.__set__('client', client);
 
-      return wowApi.getItem().
+      return wowApi.getItem(82800).
       finally(function() {
         wowApi.__set__('client', backup);
       }).should.be.rejected;

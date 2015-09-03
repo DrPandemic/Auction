@@ -1,43 +1,36 @@
 "use strict";
 
 var wowDB = {},
-    wowApi = null,
-    database = null,
-    logger = require('../logger'),
-    Promise = require('bluebird');
+  wowApi = null,
+  database = null,
+  logger = require('../logger'),
+  Promise = require('bluebird'),
+  NotFoundError = require('./errors').NotFoundError;
 
 
 function ensureState() {
-  return new Promise(function(resolve, reject) {
-    if(!wowApi || !database) {
-      logger.log(0,'wow-db is not well initialized');
-      reject(new Error('wow-db is not well initialized'));
-    }
-    else
-      resolve();
-  });
+  if (!wowApi || !database) {
+    logger.log(0, 'wow-db is not well initialized');
+    return Promise.reject(new Error('wow-db is not well initialized'));
+  } else {
+    return database.connected();
+  }
 }
 
-wowDB.init = function(api,db) {
+wowDB.init = function(api, db) {
   wowApi = api;
   database = db;
 };
 wowDB.getItem = function(itemID) {
   return ensureState()
-   .then(function() {
-    return database.getItem(itemID);
-  }).then(function(item) {
-      if(item)
-        return Promise.resolve(item);
-      else {
-        return wowApi.getItem(itemID)
-          .then(database.insertItem)
-          .catch(function(err) {
-            logger.log(0,err.message);
-            logger.log(0,err.stack);
-          });
-        }
-      });
+    .then(function() {
+      return database.getItem(itemID);
+    }).then(function(item) {
+      return Promise.resolve(item);
+    }).catch(NotFoundError, function() {
+      return wowApi.getItem(itemID)
+        .then(database.insertItem);
+    });
 };
 
 

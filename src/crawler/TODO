@@ -3,3 +3,5 @@
 - Use mocha without mocha-as-promised. Promises are now supported
 - Manage server with mutliple names [ { name: 'Aggra (Português)', slug: 'aggra-portugues' },
   { name: 'Grim Batol', slug: 'grim-batol' } ]
+- Improve error management with node-rest-client
+- Why is the logger not global...?

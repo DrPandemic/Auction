@@ -4,7 +4,8 @@ var redis = require("redis"),
     prefix = 'channel_',
     logger = require('../logger'),
     listenTokens = [],
-    Symbol = require('symbol');
+    Symbol = require('symbol'),
+    _ = require('underscore');
 
 
 var queue = function() {
@@ -12,10 +13,10 @@ var queue = function() {
   this.sub = redis.createClient();
   this.pub = redis.createClient();
   this.sub.on("error", function (err) {
-    console.log("Error " + err);
+    console.error("Sub Error " + err);
   });
   this.pub.on("error", function (err) {
-    console.log("Error " + err);
+    console.error("Pub Error " + err);
   });
   var self = this;
   this.sub.on('message', function (channel, message) {
@@ -30,6 +31,14 @@ queue.prototype.subscribe = function(channel, callback) {
   this.sub.subscribe(channel);
   this.callbacks_popsub.push({channel: channel, callback: callback});
 };
+queue.prototype.unsubscribe = function(channel) {
+  this.sub.unsubscribe(channel);
+  var i =_.findIndex(this.callbacks_popsub, function(res) {
+    return res.channel === channel;
+  });
+  if(i >= 0)
+    this.callbacks_popsub.splice(i, 1);
+};
 
 queue.prototype.publish = function(channel, message) {
   this.pub.publish(channel, message);
@@ -37,7 +46,8 @@ queue.prototype.publish = function(channel, message) {
 
 queue.prototype.listen = function(channel, callback) {
   var client = redis.createClient(),
-      token = Symbol();
+      token = Symbol(),
+      self = this;
 
   var listen = function() {
     client.blpop(prefix+channel, 0, function(err, message) {
@@ -50,7 +60,7 @@ queue.prototype.listen = function(channel, callback) {
 
         process.nextTick(listen);
       } else
-        this.pub.lpush(prefix+channel, message[1]);
+        self.pub.lpush(prefix+channel, message[1]);
     });
   };
 
@@ -58,7 +68,7 @@ queue.prototype.listen = function(channel, callback) {
 
   listenTokens.push(token);
 
-  return listenTokens;
+  return token;
 };
 queue.prototype.send = function(channel, message) {
   this.pub.rpush(prefix+channel, message);

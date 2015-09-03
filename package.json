@@ -6,6 +6,7 @@
   "dependencies": {
     "async": "^0.9.0",
     "bluebird": "^2.9.14",
+    "hiredis": "^0.4.1",
     "mongodb": "^1.4.26",
     "node-rest-client": "^1.4.3",
     "redis": "^0.12.1",

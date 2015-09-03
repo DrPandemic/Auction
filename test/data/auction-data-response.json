@@ -1,0 +1,47 @@
+{
+  "realms": [{
+    "name": "Medivh",
+    "slug": "medivh"
+  }, {
+    "name": "Exodar",
+    "slug": "exodar"
+  }],
+  "auctions": [{
+      "auc": 864101530,
+      "item": 25020,
+      "owner": "Bankbaby",
+      "ownerRealm": "Exodar",
+      "bid": 826200,
+      "buyout": 826200,
+      "quantity": 1,
+      "timeLeft": "VERY_LONG",
+      "rand": -36,
+      "seed": 768475164,
+      "context": 0
+    }, {
+      "auc": 864979840,
+      "item": 109128,
+      "owner": "Begnforgrace",
+      "ownerRealm": "Exodar",
+      "bid": 54900,
+      "buyout": 54999,
+      "quantity": 5,
+      "timeLeft": "LONG",
+      "rand": 0,
+      "seed": 0,
+      "context": 0
+    }, {
+      "auc": 864768094,
+      "item": 79011,
+      "owner": "Sandell",
+      "ownerRealm": "Exodar",
+      "bid": 79990,
+      "buyout": 79990,
+      "quantity": 10,
+      "timeLeft": "VERY_LONG",
+      "rand": 0,
+      "seed": 1144014592,
+      "context": 0
+    }
+  ]
+}

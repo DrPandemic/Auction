@@ -52,6 +52,10 @@ function insertPetCage() {
   return database.insertItem(petCage);
 }
 
+function insertAuctions() {
+  return database.insertDump(require('./data/auctions'));
+}
+
 describe('database', function() {
   it('should not return an error', function() {
     should.not.exist(connErr);
@@ -243,11 +247,10 @@ describe('database', function() {
         newCollection = {},
         count = sinon.stub();
 
-      count.callsArg(0);
       newCollection.count = count;
       collection.withArgs('auction').returns(newCollection);
 
-      return database.count('grim-batol')
+      return database.count('GrimBatol')
         .then(function() {
           collection.calledWith('auction').should.be.true;
           count.called.should.be.true;
@@ -256,7 +259,11 @@ describe('database', function() {
     });
 
     it('should counts for a given server', function() {
-      true.should.not.be.true;
+      return insertAuctions().then(function() {
+        return database.count('GrimBatol');
+      }).then(function(res) {
+        res.should.be.equal(4);
+      });
     });
   });
 
@@ -411,7 +418,9 @@ describe('database', function() {
       return database.insert({
           test: 1
         }, 'auction')
-        .then(database.count)
+        .then(function() {
+          return database.count();
+        })
         .should.become(1);
     });
     it('should insert an array', function() {
@@ -425,7 +434,9 @@ describe('database', function() {
         timestamp: 1
       }];
       return database.insert(doc, 'auction')
-        .then(database.count)
+        .then(function() {
+          return database.count();
+        })
         .should.become(doc.length);
     });
     it('should insert a dump', function() {
@@ -437,7 +448,9 @@ describe('database', function() {
         ownerRealm: 'a'
       }];
       return database.insert(doc, 'auction')
-        .then(database.count)
+        .then(function() {
+          return database.count();
+        })
         .should.become(doc.length);
     });
     it('should insert a dump even with one object', function() {
@@ -446,7 +459,9 @@ describe('database', function() {
         ownerRealm: 'a'
       }];
       return database.insert(doc, 'auction')
-        .then(database.count)
+        .then(function() {
+          return database.count();
+        })
         .should.become(doc.length);
     });
 
@@ -483,9 +498,6 @@ describe('database', function() {
     });
 
     describe.skip('map-reduce', function() {
-      function insertAuctions() {
-        return database.insertDump(require('./data/auctions'));
-      }
       it('should get the right sale occurence', function() {
         return insertAuctions()
           .then(function() {

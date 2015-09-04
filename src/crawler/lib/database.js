@@ -173,17 +173,11 @@ dataProcess.close = function() {
   });
 };
 
-//TODO : Use the server parameter
 dataProcess.count = function(server) {
   var fn = function() {
-    return new Promise(function(resolve, reject) {
-      var collection = mongoDb.collection('auction');
-      collection.count(function(err, results) {
-        if (err)
-          reject(err);
-        else
-          resolve(results);
-      });
+    var collection = mongoDb.collection('auction');
+    return collection.count({
+      ownerRealm: server
     });
   };
 
@@ -236,7 +230,11 @@ dataProcess.insertItem = function(item) {
 
 dataProcess.init = function(tableName) {
   return new Promise(function(resolve, reject) {
-    mongoClient.connect('mongodb://localhost:27017/' + (tableName || 'wow'), function(err, db) {
+    var url = 'mongodb://localhost:27017/' + (tableName || 'wow');
+    var opt = {
+      promiseLibrary: Promise
+    };
+    mongoClient.connect(url, opt, function(err, db) {
       logger.log(0, 'Connecting to MongoDB');
       if (err) {
         reject(new Error(err));

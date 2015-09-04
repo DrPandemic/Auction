@@ -14,10 +14,8 @@ function ensureState() {
       reject(new Error('wow-db is not well initialized'));
     } else {
       database.connected()
-      .then(function() {
-        resolve();
-      })
-      .catch(reject);
+        .then(resolve)
+        .catch(reject);
     }
   });
 }
@@ -34,7 +32,10 @@ wowDB.getItem = function(itemID) {
       return Promise.resolve(item);
     }).catch(NotFoundError, function() {
       return wowApi.getItem(itemID);
-    }).then(database.insertItem);
+    }).then(function(res) {
+      return database.insertItem(res);
+    });
+
 };
 
 

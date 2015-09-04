@@ -383,7 +383,7 @@ describe('database', function() {
         });
     });
 
-    it('contain item, should returns false on failure', function() {
+    it('should returns false on failure', function() {
       var mongo = database.__get__('mongoDb');
       mongo.should.exist;
 

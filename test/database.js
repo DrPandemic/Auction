@@ -183,6 +183,30 @@ describe('database', function() {
         });
     });
 
+    it('should be rejected when insert produce an error other than duplicate', function() {
+      var mongo = database.__get__('mongoDb');
+      mongo.should.exist;
+
+      var collection = sinon.stub(mongo, 'collection'),
+        newCollection = {},
+        insert = sinon.stub(),
+        doc = {
+          wow: 1
+        };
+
+      var error = require('./data/mongo-duplicate-error');
+      //Not 110000 which is duplicate
+      error.code = 10;
+      insert.callsArgWith(2, error);
+      newCollection.insert = insert;
+      collection.withArgs('auction').returns(newCollection);
+
+      return database.insert(doc, 'auction')
+        .finally(function() {
+          database.__get__('mongoDb').collection.restore();
+        }).should.be.rejected;
+    });
+
     describe('dump', function() {
       it('should succeed even whitout an array', function() {
         var mongo = database.__get__('mongoDb');
@@ -414,56 +438,80 @@ describe('database', function() {
   });
 
   describe('real DB', function() {
-    it('should insert an object', function() {
-      return database.insert({
-          test: 1
-        }, 'auction')
-        .then(function() {
-          return database.count();
-        })
-        .should.become(1);
+    describe('insert', function() {
+      it('should insert an object', function() {
+        return database.insert({
+            test: 1
+          }, 'auction')
+          .then(function() {
+            return database.count();
+          })
+          .should.become(1);
+      });
+      it('should insert an array', function() {
+        var doc = [{
+          auc: 10,
+          ownerRealm: 'a',
+          timestamp: 1
+        }, {
+          auc: 11,
+          ownerRealm: 'a',
+          timestamp: 1
+        }];
+        return database.insert(doc, 'auction')
+          .then(function() {
+            return database.count();
+          })
+          .should.become(doc.length);
+      });
+      it('should insert a dump', function() {
+        var doc = [{
+          auc: 10,
+          ownerRealm: 'a'
+        }, {
+          auc: 11,
+          ownerRealm: 'a'
+        }];
+        return database.insert(doc, 'auction')
+          .then(function() {
+            return database.count();
+          })
+          .should.become(doc.length);
+      });
+      it('should insert a dump even with one object', function() {
+        var doc = [{
+          auc: 10,
+          ownerRealm: 'a'
+        }];
+        return database.insert(doc, 'auction')
+          .then(function() {
+            return database.count();
+          })
+          .should.become(doc.length);
+      });
+
+      it('should not insert duplicate but still insert a complete dump', function() {
+        var doc = [{
+          auc: 10,
+          ownerRealm: 'a'
+        }, {
+          auc: 10,
+          ownerRealm: 'a'
+        }, {
+          auc: 11,
+          ownerRealm: 'a2'
+        }, {
+          auc: 11,
+          ownerRealm: 'a2'
+        }];
+        return database.insert(doc, 'auction')
+          .then(function() {
+            return database.count();
+          })
+          .should.become(2);
+      });
     });
-    it('should insert an array', function() {
-      var doc = [{
-        auc: 10,
-        ownerRealm: 'a',
-        timestamp: 1
-      }, {
-        auc: 11,
-        ownerRealm: 'a',
-        timestamp: 1
-      }];
-      return database.insert(doc, 'auction')
-        .then(function() {
-          return database.count();
-        })
-        .should.become(doc.length);
-    });
-    it('should insert a dump', function() {
-      var doc = [{
-        auc: 10,
-        ownerRealm: 'a'
-      }, {
-        auc: 11,
-        ownerRealm: 'a'
-      }];
-      return database.insert(doc, 'auction')
-        .then(function() {
-          return database.count();
-        })
-        .should.become(doc.length);
-    });
-    it('should insert a dump even with one object', function() {
-      var doc = [{
-        auc: 10,
-        ownerRealm: 'a'
-      }];
-      return database.insert(doc, 'auction')
-        .then(function() {
-          return database.count();
-        })
-        .should.become(doc.length);
-    });
+
 
     describe('items', function() {
       it('should be able to get the pet cage', function() {

@@ -140,14 +140,17 @@ dataProcess.insert = function(document, collectionName) {
     return new Promise(function(resolve, reject) {
       var collection = mongoDb.collection(collectionName);
       logger.log(2, 'Inserting...');
+
       collection.insert(document, {
-        continueOnError: true,
-        safe: true,
-        w: 1
+        w: 1,
+        keepGoing: true
       }, function(err, result) {
-        //TODO : Stop on certain type of errors
-        //We ignore error, because duplicates will trigger errors
-        resolve(document);
+        //Duplicate errors
+        if (err && !(err.code === 11000 || err.code === 11001)) {
+          reject(err);
+        }
+        else
+          resolve(document);
       });
     });
   };

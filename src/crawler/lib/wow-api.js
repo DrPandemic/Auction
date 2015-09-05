@@ -5,6 +5,7 @@ var Client = require('node-rest-client').Client,
   logger = require('../logger'),
   auction_url = 'https://eu.api.battle.net/wow/auction/data/',
   item_url = 'https://eu.api.battle.net/wow/item/',
+  server_url = 'https://eu.api.battle.net/wow/realm/status',
   query = '?locale=en_GB&apikey=' + key,
   request = require('request'),
   url = require('url'),
@@ -94,6 +95,24 @@ wowApi.getItem = function(itemID) {
       if (data && response.statusCode === 200)
         resolve(data);
       else
+        reject(new Error(
+          'Problem with the API answer. Status code : ' + response.statusCode
+        ));
+    });
+  });
+};
+
+wowApi.getServers = function() {
+  logger.log(2, 'Sent request to wow server api');
+  return new Promise(function(resolve, reject) {
+    client.get(server_url + query, function(data, response) {
+      logger.log(1, 'Received an anwser from wow api for servers');
+      if (data && response.statusCode === 200) {
+        if (data.realms)
+          resolve(data.realms);
+        else
+          reject(new Error('Received a malformed list of servers'));
+      } else
         reject(new Error(
           'Problem with the API answer. Status code : ' + response.statusCode
         ));

@@ -1,0 +1,189 @@
+{
+  "realms": [{
+    "type": "pvp",
+    "population": "high",
+    "queue": true,
+    "wintergrasp": {
+      "area": 1,
+      "controlling-faction": 1,
+      "status": 1,
+      "next": 1441393538237
+    },
+    "tol-barad": {
+      "area": 21,
+      "controlling-faction": 0,
+      "status": 2,
+      "next": 1441393481416
+    },
+    "status": true,
+    "name": "Aegwynn",
+    "slug": "aegwynn",
+    "battlegroup": "Misery",
+    "locale": "de_DE",
+    "timezone": "Europe/Paris",
+    "connected_realms": ["aegwynn"]
+  }, {
+    "type": "pve",
+    "population": "low",
+    "queue": true,
+    "wintergrasp": {
+      "area": 1,
+      "controlling-faction": 1,
+      "status": 1,
+      "next": 1441393421035
+    },
+    "tol-barad": {
+      "area": 21,
+      "controlling-faction": 0,
+      "status": 2,
+      "next": 1441393407177
+    },
+    "status": true,
+    "name": "Aerie Peak",
+    "slug": "aerie-peak",
+    "battlegroup": "Reckoning / Abrechnung",
+    "locale": "en_GB",
+    "timezone": "Europe/Paris",
+    "connected_realms": ["bronzebeard", "aerie-peak"]
+  }, {
+    "type": "pvp",
+    "population": "medium",
+    "queue": true,
+    "wintergrasp": {
+      "area": 1,
+      "controlling-faction": 0,
+      "status": 0,
+      "next": 1441393214462
+    },
+    "tol-barad": {
+      "area": 21,
+      "controlling-faction": 1,
+      "status": 1,
+      "next": 1441393178608
+    },
+    "status": true,
+    "name": "Agamaggan",
+    "slug": "agamaggan",
+    "battlegroup": "Reckoning / Abrechnung",
+    "locale": "en_GB",
+    "timezone": "Europe/Paris",
+    "connected_realms": ["agamaggan", "crushridge", "bloodscalp", "twilights-hammer", "hakkar", "emeriss"]
+  }, {
+    "type": "pvp",
+    "population": "medium",
+    "queue": true,
+    "wintergrasp": {
+      "area": 1,
+      "controlling-faction": 0,
+      "status": 1,
+      "next": 1441393740288
+    },
+    "tol-barad": {
+      "area": 21,
+      "controlling-faction": 0,
+      "status": 2,
+      "next": 1441393696438
+    },
+    "status": true,
+    "name": "Aggra (Português)",
+    "slug": "aggra-portugues",
+    "battlegroup": "Misery",
+    "locale": "pt_BR",
+    "timezone": "Europe/Paris",
+    "connected_realms": ["aggra-portugues", "grim-batol"]
+  }, {
+    "type": "pve",
+    "population": "medium",
+    "queue": true,
+    "wintergrasp": {
+      "area": 1,
+      "controlling-faction": 1,
+      "status": 1,
+      "next": 1441393520667
+    },
+    "tol-barad": {
+      "area": 21,
+      "controlling-faction": 1,
+      "status": 2,
+      "next": 1441393470811
+    },
+    "status": true,
+    "name": "Aggramar",
+    "slug": "aggramar",
+    "battlegroup": "Vengeance / Rache",
+    "locale": "en_GB",
+    "timezone": "Europe/Paris",
+    "connected_realms": ["aggramar", "hellscream"]
+  }, {
+    "type": "pvp",
+    "population": "medium",
+    "queue": true,
+    "wintergrasp": {
+      "area": 1,
+      "controlling-faction": 1,
+      "status": 1,
+      "next": 1441394088726
+    },
+    "tol-barad": {
+      "area": 21,
+      "controlling-faction": 1,
+      "status": 2,
+      "next": 1441394028893
+    },
+    "status": true,
+    "name": "Ahn'Qiraj",
+    "slug": "ahnqiraj",
+    "battlegroup": "Vindication",
+    "locale": "en_GB",
+    "timezone": "Europe/Paris",
+    "connected_realms": ["daggerspine", "sunstrider", "trollbane", "ahnqiraj", "talnivarr", "chromaggus",
+      "laughing-skull", "balnazzar", "shattered-halls", "boulderfist"
+    ]
+  }, {
+    "type": "pvp",
+    "population": "low",
+    "queue": true,
+    "wintergrasp": {
+      "area": 1,
+      "controlling-faction": 1,
+      "status": 0,
+      "next": 1441395674619
+    },
+    "tol-barad": {
+      "area": 21,
+      "controlling-faction": 1,
+      "status": 2,
+      "next": 1441394037759
+    },
+    "status": true,
+    "name": "Al'Akir",
+    "slug": "alakir",
+    "battlegroup": "Glutsturm / Emberstorm",
+    "locale": "en_GB",
+    "timezone": "Europe/Paris",
+    "connected_realms": ["alakir", "xavius", "skullcrusher"]
+  }, {
+    "type": "pve",
+    "population": "medium",
+    "queue": true,
+    "wintergrasp": {
+      "area": 1,
+      "controlling-faction": 0,
+      "status": 1,
+      "next": 1441393519749
+    },
+    "tol-barad": {
+      "area": 21,
+      "controlling-faction": 0,
+      "status": 2,
+      "next": 1441393463889
+    },
+    "status": true,
+    "name": "Alexstrasza",
+    "slug": "alexstrasza",
+    "battlegroup": "Sturmangriff / Charge",
+    "locale": "de_DE",
+    "timezone": "Europe/Paris",
+    "connected_realms": ["alexstrasza", "nethersturm"]
+  }]
+}

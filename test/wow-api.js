@@ -230,19 +230,77 @@ describe('wow-api', function() {
     });
   });
 
-  describe.skip('real data', function() {
-    it('should be able to get auction dump with queryWithRetry',
+  describe('getServers', function() {
+    it('should succeed when the query succeed', function() {
+      var client = {
+          get: function(url, cb) {
+            cb(require('./data/servers'), {
+              statusCode: 200
+            });
+          }
+        },
+        backup = wowApi.__get__('client');
+      wowApi.__set__('client', client);
+
+      return wowApi.getServers()
+        .finally(function() {
+          wowApi.__set__('client', backup);
+        }).should.become(require('./data/servers').realms);
+    });
+    it('should be rejected when the query returns an error', function() {
+      var client = {
+          get: function(url, cb) {
+            cb('foo', {
+              statusCode: 400
+            });
+          }
+        },
+        backup = wowApi.__get__('client');
+      wowApi.__set__('client', client);
+
+      return wowApi.getServers()
+        .finally(function() {
+          wowApi.__set__('client', backup);
+        }).should.be.rejected;
+    });
+
+    it('should be rejected when the query returns a malformed response', function() {
+      var client = {
+          get: function(url, cb) {
+            cb('foo', {
+              statusCode: 200
+            });
+          }
+        },
+        backup = wowApi.__get__('client');
+      wowApi.__set__('client', client);
+
+      return wowApi.getServers()
+        .finally(function() {
+          wowApi.__set__('client', backup);
+        }).should.be.rejected;
+    });
+  });
+
+  describe('real data', function() {
+    it.skip('should be able to get auction dump with queryWithRetry',
       function() {
         this.timeout(10 * 1000);
         return wowApi.queryWithRetry('grim-batol', 3);
       });
 
     it('should be able to get an item (pet cage)', function() {
-      return wowApi.getItem(82800);
+      return wowApi.getItem(82800)
+        .should.eventually.property('id', 82800);
     });
 
     it('should fails when the object doesn\'t exists', function() {
       return wowApi.getItem(8280000000).should.be.rejected;
+    });
+
+    it('should receive a list of servers', function() {
+      return wowApi.getServers()
+        .should.eventually.have.length.of.at.least(20);
     });
   });
 

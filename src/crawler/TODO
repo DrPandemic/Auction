@@ -1,6 +1,6 @@
 - Create a new script made to add queries
-- database.insert should not swallow all errors. Saw this error while inserting docs that don't follow indexes
 - Manage server with mutliple names [ { name: 'Aggra (Português)', slug: 'aggra-portugues' },
   { name: 'Grim Batol', slug: 'grim-batol' } ]
 - Improve error management with node-rest-client
 - Why is the logger not global...?
+- Create a call to populate the server table

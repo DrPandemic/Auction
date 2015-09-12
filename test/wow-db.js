@@ -201,12 +201,17 @@ describe('wow-db', function() {
         });
     });
     it('should save results', function() {
+      var backup1 = wowDb.__get__('wowApi').getServers,
+        stub1 = sinon.stub().resolves(require('./data/servers').realms);
+      wowDb.__get__('wowApi').getServers = stub1;
+
       var backup = wowDb.__get__('database').setServers,
         stub = sinon.stub().resolves();
-      wowDb.__get__('database').getServers = stub;
+      wowDb.__get__('database').setServers = stub;
 
       return wowDb.getServers()
         .finally(function() {
+          wowDb.__get__('wowApi').getServers = backup1;
           wowDb.__get__('database').setServers = backup;
 
           stub.called.should.be.true;
@@ -222,8 +227,8 @@ describe('wow-db', function() {
           setServersStub = sinon.stub().resolves(require('./data/servers'));
         wowDb.__get__('wowApi').getServers = setServersStub;
 
-        return wowDb.getItem(82800)
-          .finally(function() {
+        return wowDb.getServers()
+          .finally(function(res) {
             wowDb.__get__('database').setServers = backup;
             wowDb.__get__('wowApi').getServers = getServersBackup;
 

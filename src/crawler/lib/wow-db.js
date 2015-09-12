@@ -40,13 +40,9 @@ wowDB.getItem = function(itemID) {
 wowDB.getServers = function() {
   return ensureState()
     .then(function() {
-      return database.getItem(itemID);
-    }).then(function(item) {
-      return Promise.resolve(item);
-    }).catch(NotFoundError, function() {
-      return wowApi.getItem(itemID);
-    }).then(function(res) {
-      return database.insertItem(res);
+      return wowApi.getServers();
+    }).then(function(servers) {
+      return database.setServers(servers);
     });
 };
 

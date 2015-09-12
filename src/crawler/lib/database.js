@@ -229,7 +229,7 @@ dataProcess.setServers = function(servers) {
         if (e)
           reject(e);
         else
-          resolve();
+          resolve(servers);
       });
     });
   }).then(function() {

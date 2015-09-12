@@ -20,7 +20,7 @@ chai.use(chaiAsPromised);
 
 before(function(done) {
   wowApi = rewire('../src/crawler/lib/wow-api');
-  wowApi.__get__('logger').verbose = -1;
+  require('../src/crawler/logger').verbose = -1;
 
   rejecter = Promise.onPossiblyUnhandledRejection;
   Promise.onPossiblyUnhandledRejection(undefined);

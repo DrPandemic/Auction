@@ -27,7 +27,7 @@ There's many things left to do. Those lists are not exhaustives
 - [ ] Better way to store auction dumps
 - [ ] Continue Abathur
 - [ ] Improve error management with node-rest-client
-- [ ] Why is the logger not global...?
+- [x] Why is the logger not global...?
 
 ### Web
 - [ ] Admin account to manager everything

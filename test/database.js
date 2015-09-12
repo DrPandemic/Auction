@@ -19,7 +19,7 @@ chai.use(chaiAsPromised);
 
 before(function(done) {
   database = rewire('../src/crawler/lib/database');
-  database.__get__('logger').verbose = -1;
+  require('../src/crawler/logger').verbose = -1;
   database.init('wowTest').then(function() {
     cleanDb(done);
   }).catch(function(err) {
@@ -94,7 +94,7 @@ describe('database', function() {
     return Promise.settle(funcs).then(function(results) {
       var res = results.reduce(function(prev, current) {
         return prev && current.isRejected() &&
-         current.reason().message === str;
+          current.reason().message === str;
       }, true);
 
       database.__set__('mongoDb', mongo);

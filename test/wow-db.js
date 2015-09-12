@@ -26,9 +26,7 @@ before(function(done) {
   database.init('wowTest').then(function() {
     cleanDb(function() {
       wowDb = rewire('../src/crawler/lib/wow-db');
-      wowApi.__get__('logger').verbose = -1;
-      database.__get__('logger').verbose = -1;
-      wowDb.__get__('logger').verbose = -1;
+      require('../src/crawler/logger').verbose = -1;
 
       wowDb.init(wowApi, database);
 

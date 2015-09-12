@@ -1,11 +1,11 @@
 "use strict";
 
-var settings = function() {};
+var settings = {};
 
-settings.prototype.verbose = 2;
-settings.prototype.log = function(level, message) {
+settings.verbose = 2;
+settings.log = function(level, message) {
   if(level <= this.verbose)
     console.log(message);
 };
 
-module.exports = new settings();
+module.exports = settings;

@@ -93,8 +93,8 @@ describe('database', function() {
 
     return Promise.settle(funcs).then(function(results) {
       var res = results.reduce(function(prev, current) {
-        return prev && current.isRejected() && current.reason()
-          .message === str;
+        return prev && current.isRejected() &&
+         current.reason().message === str;
       }, true);
 
       database.__set__('mongoDb', mongo);

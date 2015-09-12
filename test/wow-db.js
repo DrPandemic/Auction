@@ -98,6 +98,35 @@ describe('wow-db', function() {
           wowDb.__set__('wowApi', wowApi);
         }).should.be.rejected;
     });
+
+    it('should test connection before every method calls', function() {
+      var database = wowDb.__get__('database'),
+        str = 'wow-db is not well initialized';
+      wowDb.__set__('database', null);
+
+      //Silence the unhandled exceptions
+      var rejecter = Promise.onPossiblyUnhandledRejection;
+      Promise.onPossiblyUnhandledRejection(undefined);
+
+      var funcs = [
+        wowDb.getItem(8),
+        wowDb.getServers()
+      ];
+
+      return Promise.settle(funcs).then(function(results) {
+        var res = results.reduce(function(prev, current) {
+          return prev && current.isRejected() &&
+            current.reason().message === str;
+        }, true);
+
+        wowDb.__set__('database', database);
+        Promise.onPossiblyUnhandledRejection(rejecter);
+
+        return res ? Promise.resolve() : Promise.reject(new Error(
+          'At least one function didn\'t test the connection'));
+      });
+    });
+
   });
 
   describe('getItem', function() {
@@ -157,5 +186,67 @@ describe('wow-db', function() {
 
           }).should.be.rejected;
       });
+  });
+  describe('getServers', function() {
+    it('should call wow-api', function() {
+      var backup = wowDb.__get__('wowApi').getServers,
+        stub = sinon.stub().resolves(require('./data/servers').realms);
+      wowDb.__get__('wowApi').getServers = stub;
+
+      return wowDb.getServers()
+        .finally(function() {
+          wowDb.__get__('wowApi').getServers = backup;
+
+          stub.called.should.be.true;
+        });
+    });
+    it('should save results', function() {
+      var backup = wowDb.__get__('database').setServers,
+        stub = sinon.stub().resolves();
+      wowDb.__get__('database').getServers = stub;
+
+      return wowDb.getServers()
+        .finally(function() {
+          wowDb.__get__('database').setServers = backup;
+
+          stub.called.should.be.true;
+        });
+    });
+    it('should give an error if it was unable to save the object',
+      function() {
+        var backup = wowDb.__get__('database').setServers,
+          stub = sinon.stub().rejects(new Error());
+        wowDb.__get__('database').setServers = stub;
+
+        var getServersBackup = wowDb.__get__('wowApi').getServers,
+          setServersStub = sinon.stub().resolves(require('./data/servers'));
+        wowDb.__get__('wowApi').getServers = setServersStub;
+
+        return wowDb.getItem(82800)
+          .finally(function() {
+            wowDb.__get__('database').setServers = backup;
+            wowDb.__get__('wowApi').getServers = getServersBackup;
+
+          }).should.be.rejected;
+      });
+  });
+
+  describe('real data', function() {
+    describe('getItem', function() {
+      it('should succeed with a good item id', function() {
+        return wowDb.getItem(82800)
+          .should.eventually.have.property('name', 'Pet Cage');
+      });
+      it('should be rejected with a bad item id', function() {
+        return wowDb.getItem(-50)
+          .should.be.rejected;
+      });
+    });
+    describe('getServers', function() {
+      it('should succeed', function() {
+        return wowDb.getServers()
+          .should.be.fulfilled;
+      });
+    });
   });
 });

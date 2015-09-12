@@ -1,8 +1,7 @@
-- Create a new script made to add queries
+- Create a new script made to add queries in redis queue
 - Manage server with mutliple names [ { name: 'Aggra (Português)', slug: 'aggra-portugues' },
   { name: 'Grim Batol', slug: 'grim-batol' } ]
 - Improve error management with node-rest-client
 - Why is the logger not global...?
-- Create a new class for DB queries
-- Create a call to populate the server table
 - Readme
+- Change class separation : items, servers, auctions...

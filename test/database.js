@@ -8,6 +8,7 @@ var rewire = require('rewire'),
   assert = chai.assert,
   _ = require('lodash'),
   database = null,
+  mapReducer = rewire('../src/crawler/lib/map-reducer'),
   connErr = null,
   Promise = require('bluebird'),
   NotFoundError = require('../src/crawler/lib/errors').NotFoundError,
@@ -85,9 +86,9 @@ describe('database', function() {
       database.count('some'),
       database.containItem('some'),
       database.insertItem('some'),
-      database.getSalesOccurence('some'),
-      database.getSalesValueBuyout('some'),
-      database.getSalesValueBid('some')
+      mapReducer.getSalesOccurence('some'),
+      mapReducer.getSalesValueBuyout('some'),
+      mapReducer.getSalesValueBid('some')
     ];
 
     return Promise.settle(funcs).then(function(results) {

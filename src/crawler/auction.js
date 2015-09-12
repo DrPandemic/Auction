@@ -6,7 +6,7 @@ var database = require('./lib/database'),
   logger = require('./logger'),
   maxTry = 10,
   wowDB = require('./lib/wow-db'),
-  _ = require('underscore'),
+  _ = require('lodash'),
   Promise = require('bluebird'),
   join = Promise.join;
 

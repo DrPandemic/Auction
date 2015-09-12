@@ -5,7 +5,7 @@ var redis = require("redis"),
     logger = require('../logger'),
     listenTokens = [],
     Symbol = require('symbol'),
-    _ = require('underscore');
+    _ = require('lodash');
 
 
 var queue = function() {

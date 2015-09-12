@@ -5,10 +5,9 @@ var dataProcess = {},
   logger = require('../logger'),
   mongoDb = null,
   async = require('async'),
-  _ = require('underscore'),
+  _ = require('lodash'),
   sorts = {},
   reducers = {},
-  servers = [],
   tQueueItem = 'itemQueue',
   Promise = require('bluebird'),
   NotFoundError = require('./errors').NotFoundError;
@@ -148,8 +147,7 @@ dataProcess.insert = function(document, collectionName) {
         //Duplicate errors
         if (err && !(err.code === 11000 || err.code === 11001)) {
           reject(err);
-        }
-        else
+        } else
           resolve(document);
       });
     });
@@ -251,19 +249,7 @@ dataProcess.init = function(tableName) {
   //Initializes the collection if it doesn't exists
   // Creates an unique index
   function initDB() {
-    return new Promise(function(resolve, reject) {
-      var collection = mongoDb.collection('servers');
-      collection.find().toArray(function(err, items) {
-        if (err) {
-          reject(new Error(
-            'There was an error while getting the server list'));
-          return;
-        }
-        logger.log(2, items);
-        servers = items;
-        resolve();
-      });
-    }).then(ensureIndex);
+    return ensureIndex();
   }
 };
 
@@ -298,12 +284,43 @@ dataProcess.getSalesValueBid = function(server) {
 };
 
 dataProcess.getServers = function() {
-  return Promise.resolve(servers);
+  var fn = function() {
+    return new Promise(function(resolve, reject) {
+      var collection = mongoDb.collection('servers');
+      collection.find().toArray(function(err, servers) {
+        if (err || !servers)
+          reject(new Error(err));
+        else
+          resolve(servers);
+      });
+    });
+  };
+
+  return ensureDB().then(fn);
 };
 
 //Removes all servers and insert the new ones
+function testServerFormat(server) {
+  return server && server.hasOwnProperty('type') && server.hasOwnProperty('population') &&
+   server.hasOwnProperty('status') && server.hasOwnProperty('name') && server.hasOwnProperty('slug') &&
+   server.hasOwnProperty('type');
+}
 dataProcess.setServers = function(servers) {
-  return Promise.reject();
+  //Test format
+  if(!(_.isArray(servers) && servers.every(testServerFormat)))
+    return Promise.reject(new Error('The servers object had the wrong format'));
+  return ensureDB().then(function() {
+    return new Promise(function(resolve, reject) {
+      mongoDb.collection('servers').remove(function(e) {
+        if (e)
+          reject(e);
+        else
+          resolve();
+      });
+    });
+  }).then(function() {
+      return dataProcess.insert(servers, 'servers');
+  });
 };
 
 module.exports = dataProcess;

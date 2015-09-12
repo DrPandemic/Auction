@@ -6,7 +6,7 @@ var rewire = require('rewire'),
   sinon = require('sinon'),
   async = require('async'),
   assert = chai.assert,
-  _ = require('underscore'),
+  _ = require('lodash'),
   database = null,
   connErr = null,
   Promise = require('bluebird'),
@@ -609,15 +609,15 @@ describe('database', function() {
 
     describe('severs', function() {
       it('should contains exactly what was inserted', function() {
-        var servers = require('./data/servers');
+        var servers = require('./data/servers').realms;
         return database.setServers([servers[0]])
           .then(function() {
             return database.getServers();
-          }).should.become(servers[0]);
+          }).should.become([servers[0]]);
       });
 
       it('should not contains old inserts', function() {
-        var servers = require('./data/servers');
+        var servers = require('./data/servers').realms;
         return database.setServers([servers[0]])
           .then(function() {
             return database.setServers([servers[1]]);
@@ -640,6 +640,10 @@ describe('database', function() {
           foo: 1
         }])
         .should.be.rejected;
+    });
+    it('should succeed with good servers', function() {
+      return database.setServers(require('./data/servers').realms)
+        .should.be.fulfilled;
     });
     it('should reject when the DB produce an error on insert', function() {
       var mongo = database.__get__('mongoDb');
@@ -678,7 +682,7 @@ describe('database', function() {
       var error = require('./data/mongo-duplicate-error');
       //Not 110000 which is duplicate
       error.code = 10;
-      remove.callsArgWith(2, error);
+      remove.callsArgWith(1, error);
       newCollection.remove = remove;
       collection.withArgs('servers').returns(newCollection);
 

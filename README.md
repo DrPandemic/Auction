@@ -35,6 +35,15 @@ There's many things left to do. Those lists are not exhaustives
 - [ ] Meaningful statistics to present
 - [ ] Design
 
+## Api key
+I didn't put my Api keys in the project. If you want to add yours you simply need
+to create ```src/crawler/key.js``` containing
+```javascript
+module.exports = function() {
+  return 'your key';
+};
+```
+
 ## Participate
 Don't hesitate to PR and add new issues. If you want to help me structure the project
 and create something more meaningful, don't hesitate to contact me.

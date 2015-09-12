@@ -298,7 +298,12 @@ dataProcess.getSalesValueBid = function(server) {
 };
 
 dataProcess.getServers = function() {
-  return servers;
+  return Promise.resolve(servers);
+};
+
+//Removes all servers and insert the new ones
+dataProcess.setServers = function(servers) {
+  return Promise.reject();
 };
 
 module.exports = dataProcess;

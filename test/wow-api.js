@@ -299,6 +299,7 @@ describe('wow-api', function() {
     });
 
     it('should receive a list of servers', function() {
+      this.timeout(10 * 1000);
       return wowApi.getServers()
         .should.eventually.have.length.of.at.least(20);
     });

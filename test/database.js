@@ -42,7 +42,11 @@ function cleanDb(cb) {
       db.collection('items').remove(function(e) {
         if (e)
           console.error(e);
-        cb();
+        db.collection('servers').remove(function(e) {
+          if (e)
+            console.error(e);
+          cb();
+        });
       });
     });
   });
@@ -603,5 +607,85 @@ describe('database', function() {
       });
     });
 
+    describe('severs', function() {
+      it('should contains exactly what was inserted', function() {
+        var servers = require('./data/servers');
+        return database.setServers([servers[0]])
+          .then(function() {
+            return database.getServers();
+          }).should.become(servers[0]);
+      });
+
+      it('should not contains old inserts', function() {
+        var servers = require('./data/servers');
+        return database.setServers([servers[0]])
+          .then(function() {
+            return database.setServers([servers[1]]);
+          }).then(function() {
+            return database.getServers();
+          }).should.eventually.not.contain(servers[0]);
+      });
+    });
+  });
+
+  describe('servers', function() {
+    it('should reject when trying to insert not an array', function() {
+      return database.setServers({
+          foo: 1
+        })
+        .should.be.rejected;
+    });
+    it('should reject when trying to insert malformed servers', function() {
+      return database.setServers([{
+          foo: 1
+        }])
+        .should.be.rejected;
+    });
+    it('should reject when the DB produce an error on insert', function() {
+      var mongo = database.__get__('mongoDb');
+      mongo.should.exist;
+
+      var collection = sinon.stub(mongo, 'collection'),
+        newCollection = {},
+        insert = sinon.stub(),
+        doc = [{
+          wow: 1
+        }];
+
+      var error = require('./data/mongo-duplicate-error');
+      //Not 110000 which is duplicate
+      error.code = 10;
+      insert.callsArgWith(2, error);
+      newCollection.insert = insert;
+      collection.withArgs('servers').returns(newCollection);
+
+      return database.setServers(doc)
+        .finally(function() {
+          database.__get__('mongoDb').collection.restore();
+        }).should.be.rejected;
+    });
+    it('should reject when the DB produce an error on remove', function() {
+      var mongo = database.__get__('mongoDb');
+      mongo.should.exist;
+
+      var collection = sinon.stub(mongo, 'collection'),
+        newCollection = {},
+        remove = sinon.stub(),
+        doc = [{
+          wow: 1
+        }];
+
+      var error = require('./data/mongo-duplicate-error');
+      //Not 110000 which is duplicate
+      error.code = 10;
+      remove.callsArgWith(2, error);
+      newCollection.remove = remove;
+      collection.withArgs('servers').returns(newCollection);
+
+      return database.setServers(doc)
+        .finally(function() {
+          database.__get__('mongoDb').collection.restore();
+        }).should.be.rejected;
+    });
   });
 });

@@ -3,4 +3,6 @@
   { name: 'Grim Batol', slug: 'grim-batol' } ]
 - Improve error management with node-rest-client
 - Why is the logger not global...?
+- Create a new class for DB queries
 - Create a call to populate the server table
+- Readme

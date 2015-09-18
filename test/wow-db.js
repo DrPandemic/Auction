@@ -234,7 +234,7 @@ describe('wow-db', function() {
       });
   });
 
-  describe('real data', function() {
+  describe.skip('real data', function() {
     describe('getItem', function() {
       it('should succeed with a good item id', function() {
         return wowDb.getItem(82800)

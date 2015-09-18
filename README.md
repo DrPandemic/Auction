@@ -20,9 +20,10 @@ To run the crawler ```npm start``` and ```npm run test``` to launch the tests.
 ## TODO
 There's many things left to do. Those lists are not exhaustives
 ### Crawler
+- [ ] Rework the classes separation
+- [ ] Have fun with node 4
 - [ ] Significant statistics
 - [ ] Gather data
-- [ ] Rework the classes separation
 - [ ] Work with server with multiple name (not even sure what it means)
 - [ ] Better way to store auction dumps
 - [ ] Continue Abathur
@@ -30,6 +31,7 @@ There's many things left to do. Those lists are not exhaustives
 - [x] Why is the logger not global...?
 
 ### Web
+- [ ] Choose which stack to use for frontend. Node rest + ng2?
 - [ ] Admin account to manager everything
 - [ ] Cool graphics
 - [ ] Meaningful statistics to present

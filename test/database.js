@@ -464,8 +464,8 @@ describe('database', function() {
           timestamp: 1
         }];
         return database.insert(doc, 'auction')
-          .then(function() {
-            return database.count();
+          .then(function(res) {
+            return database.count('a');
           })
           .should.become(doc.length);
       });
@@ -479,7 +479,7 @@ describe('database', function() {
         }];
         return database.insert(doc, 'auction')
           .then(function() {
-            return database.count();
+            return database.count('a');
           })
           .should.become(doc.length);
       });
@@ -490,7 +490,7 @@ describe('database', function() {
         }];
         return database.insert(doc, 'auction')
           .then(function() {
-            return database.count();
+            return database.count('a');
           })
           .should.become(doc.length);
       });
@@ -504,14 +504,14 @@ describe('database', function() {
           ownerRealm: 'a'
         }, {
           auc: 11,
-          ownerRealm: 'a2'
+          ownerRealm: 'a'
         }, {
           auc: 11,
-          ownerRealm: 'a2'
+          ownerRealm: 'a'
         }];
         return database.insert(doc, 'auction')
           .then(function() {
-            return database.count();
+            return database.count('a');
           })
           .should.become(2);
       });

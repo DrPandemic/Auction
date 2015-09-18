@@ -12,6 +12,7 @@
     "node-rest-client": "^1.4.3",
     "redis": "^1.0.0",
     "request": "^2.51.0",
+    "sinon-as-promised": "^4.0.0",
     "symbol": "^0.2.1"
   },
   "devDependencies": {

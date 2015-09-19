@@ -26,8 +26,6 @@ let ApiError = require('../../lib/errors').ApiError,
 // Database
 let database = require('../helpers/database');
 
-database.connect();
-
 /*
   Query the API to get the dump.
   @param {string, string} URL to query, timestamp.
@@ -42,17 +40,23 @@ function getData(source, timestamp) {
 
   return new Promise(function(resolve, reject) {
     request(options, function(error, response, body) {
+      // Logs
       logger.log('api', 'Received auction dump');
 
-      if (response.statusCode === 200 && !error &&
-        validator.validate(body, schemaDump).valid) {
-        resolve({
-          timestamp: timestamp,
-          results: body
-        });
-      } else {
+      // Errors
+      if (response.statusCode !== 200 || error) {
         reject(new ApiError(error));
+        return;
+      } else if (!validator.validate(body, schemaDump).valid) {
+        reject(new MalformedError('Dump itself'));
+        return;
       }
+
+      // Succeed
+      resolve({
+        timestamp: timestamp,
+        results: body
+      });
     });
   });
 }
@@ -67,9 +71,10 @@ function query(server) {
   logger.log('api', 'Sent request to wow auction api for ' + server);
   return new Promise(function(resolve, reject) {
     client.get(auctionUrl + server + queryEnd, function(data, response) {
-      logger.log('api', 'Received an anwser from wow api for ' + server);
-      logger.log('api', data);
+      // Logs
+      logger.log('api', 'Received an anwser from wow api for ' + server, data);
 
+      // Errors
       if (response.statusCode !== 200) {
         reject(new ApiError(
           'Problem with the API answer. Status code : ' + response.statusCode));
@@ -79,12 +84,16 @@ function query(server) {
         return;
       }
 
+      // Succeed
       getData(data.files[0].url, data.files[0].lastModified)
         .then((results) => {
           resolve(results);
         }).catch((e) => {
           reject(e);
         });
+    }).on('error', (err) => {
+      // This error is not tested
+      reject(new ApiError(err));
     });
   });
 }
@@ -111,6 +120,12 @@ function queryWithRetry(server, retry) {
 }
 
 // DB
+/*
+  Save a dump in MongoDB.
+  @param {object} The dump.
+  @return {object} The dump.
+  @error {DatabaseError}
+*/
 function insertDump(document, timestamp) {
   if (!_.isArray(document))
     document = [document];
@@ -134,16 +149,6 @@ class auction {
   }
 
   /*
-    Save a dump in MongoDB.
-    @param {object} The dump.
-    @return {object} The dump.
-    @error {DatabaseError}
-  */
-  static saveDump(dump) {
-    return insertDump(dump.results.auctions, dump.timestamp);
-  }
-
-  /*
     Fetch a dump and save it in MongoDB.
     @param {string, ?number} Realm name, number of retries.
     @return {object} The dump.
@@ -151,9 +156,9 @@ class auction {
   */
   static fetchAndSaveDump(server, retry) {
     return auction.fetchDump(server, retry)
-    .then((res) => {
-      return auction.saveDump(res);
-    });
+      .then((res) => {
+        return insertDump(res.results.auctions, res.timestamp);
+      });
   }
 }
 

@@ -62,7 +62,7 @@ function cleanDb(cb) {
   });
 }
 
-describe('wow-db', function() {
+describe.skip('wow-db', function() {
   describe('ensure state', function() {
     it('should test if the db is present', function() {
       wowDb.__set__('database', null);

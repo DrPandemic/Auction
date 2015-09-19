@@ -61,7 +61,7 @@ function insertAuctions() {
   return database.insertDump(require('./data/auctions'));
 }
 
-describe('database', function() {
+describe.skip('database', function() {
   it('should not return an error', function() {
     should.not.exist(connErr);
   });

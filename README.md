@@ -21,8 +21,11 @@ To run the crawler ```npm start``` and ```npm run test``` to launch the tests.
 There's many things left to do. Those lists are not exhaustives
 ### Crawler
 - [ ] Rework the classes separation
-- [ ] Validate API responses
-- [ ] Have fun with node 4
+- [ ] Controllers
+- [ ] CLI
+- [x] Validate API responses
+- [x] Have fun with node 4
+- [ ] Helper tests
 - [ ] Significant statistics
 - [ ] Gather data
 - [ ] Work with server with multiple name (not even sure what it means)

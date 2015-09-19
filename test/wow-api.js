@@ -31,7 +31,7 @@ after(function() {
   Promise.onPossiblyUnhandledRejection(rejecter);
 });
 
-describe('wow-api', function() {
+describe.skip('wow-api', function() {
   describe('initial http query', function() {
     it('should reject when receive malformed data', function() {
       var client = {

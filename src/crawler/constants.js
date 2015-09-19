@@ -2,20 +2,25 @@
 
 let key = require('./key')(),
   region = 'eu',
-  base_url = 'https://' + region + '.api.battle.net/wow/';
+  baseUrl = 'https://' + region + '.api.battle.net/wow/';
 
 module.exports = {
   key: key,
-  auction_url: base_url + 'auction/data/',
-  item_url: base_url + 'item/',
-  server_url: base_url + 'realm/status',
+  auctionUrl: baseUrl + 'auction/data/',
+  itemUrl: baseUrl + 'item/',
+  serverUrl: baseUrl + 'realm/status',
   query: '?locale=en_GB&apikey=' + key,
-  default_query_options: () => {
+  defaultQueryOptions: () => {
     return {
       url: '',
       gzip: true,
       method: 'GET',
       json: true
     };
+  },
+  mongoConnectionString: 'mongodb://localhost:27017/',
+  mongoIndexes: require('./indexes'),
+  tableNames: {
+    auction: 'auction'
   }
 };

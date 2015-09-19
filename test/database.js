@@ -40,10 +40,10 @@ function cleanDb(cb) {
     db.collection('itemQueue').remove(function(e) {
       if (e)
         console.error(e);
-      db.collection('items').remove(function(e) {
+      db.collection('item').remove(function(e) {
         if (e)
           console.error(e);
-        db.collection('servers').remove(function(e) {
+        db.collection('server').remove(function(e) {
           if (e)
             console.error(e);
           cb();
@@ -310,7 +310,7 @@ describe('database', function() {
 
         findOne.callsArgWithAsync(1);
         newCollection.findOne = findOne;
-        collection.withArgs('items').returns(newCollection);
+        collection.withArgs('item').returns(newCollection);
 
         return database.getItem(id)
           .then(function(doc) {
@@ -337,7 +337,7 @@ describe('database', function() {
 
       findOne.callsArgWithAsync(1, null, obj);
       newCollection.findOne = findOne;
-      collection.withArgs('items').returns(newCollection);
+      collection.withArgs('item').returns(newCollection);
 
       return database.getItem(id)
         .then(function(doc) {
@@ -357,7 +357,7 @@ describe('database', function() {
 
       findOne.callsArgWithAsync(1, 'foo bar error');
       newCollection.findOne = findOne;
-      collection.withArgs('items').returns(newCollection);
+      collection.withArgs('item').returns(newCollection);
 
       return database.getItem(id)
         .then(function(doc) {
@@ -383,7 +383,7 @@ describe('database', function() {
 
       findOne.callsArgWithAsync(1, 'foo bar error');
       newCollection.findOne = findOne;
-      collection.withArgs('items').returns(newCollection);
+      collection.withArgs('item').returns(newCollection);
 
       return database.containItem(id)
         .then(function(doc) {
@@ -409,7 +409,7 @@ describe('database', function() {
 
       findOne.callsArgWithAsync(1, null, obj);
       newCollection.findOne = findOne;
-      collection.withArgs('items').returns(newCollection);
+      collection.withArgs('item').returns(newCollection);
 
       return database.containItem(id)
         .then(function(doc) {
@@ -431,7 +431,7 @@ describe('database', function() {
 
       findOne.callsArgWithAsync(1, null, obj);
       newCollection.findOne = findOne;
-      collection.withArgs('items').returns(newCollection);
+      collection.withArgs('item').returns(newCollection);
 
       return database.containItem(id)
         .then(function(doc) {
@@ -518,7 +518,7 @@ describe('database', function() {
     });
 
 
-    describe('items', function() {
+    describe('item', function() {
       it('should be able to get the pet cage', function() {
         return insertPetCage()
           .then(function() {
@@ -629,7 +629,7 @@ describe('database', function() {
     });
   });
 
-  describe('servers', function() {
+  describe('server', function() {
     it('should reject when trying to insert not an array', function() {
       return database.setServers({
           foo: 1
@@ -662,7 +662,7 @@ describe('database', function() {
       error.code = 10;
       insert.callsArgWith(2, error);
       newCollection.insert = insert;
-      collection.withArgs('servers').returns(newCollection);
+      collection.withArgs('server').returns(newCollection);
 
       return database.setServers(doc)
         .finally(function() {
@@ -685,7 +685,7 @@ describe('database', function() {
       error.code = 10;
       remove.callsArgWith(1, error);
       newCollection.remove = remove;
-      collection.withArgs('servers').returns(newCollection);
+      collection.withArgs('server').returns(newCollection);
 
       return database.setServers(doc)
         .finally(function() {

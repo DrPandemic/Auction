@@ -4,23 +4,28 @@ const subjects = ['api', 'db', 'error'];
 let activeSubjects = [];
 
 class logger {
-  static log(subjects, value) {
-    if(!_.isArray(subjects))
+  /*
+    Logs event depending on the subjects.
+    @param {string[], ...string} Subjects, messages.
+  */
+  static log(subjects) {
+    if (!_.isArray(subjects))
       subjects = [subjects];
 
-    for(let subject of subjects) {
-      if(activeSubjects.indexOf(subject) > -1)
-        console.log(value);
+    for (let subject of subjects) {
+      if (activeSubjects.indexOf(subject) > -1)
+        for (var i = 1; i < arguments.length; i++)
+          console.log(arguments[i]);
     }
   }
   static activate(subject) {
-    if(activeSubjects.indexOf(subject) === -1 && subjects.indexOf(subject) > -1)
+    if (activeSubjects.indexOf(subject) === -1 && subjects.indexOf(subject) > -1)
       activeSubjects.push(subject);
   }
   static deactivate(subject) {
-    if(subjects.indexOf(subject) > -1) {
+    if (subjects.indexOf(subject) > -1) {
       let index = activeSubjects.indexOf(subject);
-      if(index > -1)
+      if (index > -1)
         activeSubjects.splice();
     }
   }

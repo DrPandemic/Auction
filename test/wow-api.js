@@ -282,7 +282,7 @@ describe('wow-api', function() {
     });
   });
 
-  describe.skip('real data', function() {
+  describe('real data', function() {
     it.skip('should be able to get auction dump with queryWithRetry',
       function() {
         this.timeout(10 * 1000);

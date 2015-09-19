@@ -1,22 +1,41 @@
 "use strict";
+// Const
+let constants = require('../../constants'),
+  auctionUrl = constants.auctionUrl,
+  queryEnd = constants.query;
+
+// Packages
 let logger = require('../../sLogger'),
-  constants = require('../../constants'),
-  auction_url = constants.auction_url,
   Promise = require('bluebird'),
   request = require('request'),
-  ApiError = require('../../lib/errors').ApiError,
   Client = require('node-rest-client').Client,
   client = new Client(),
-  query_end = constants.query;
+  _ = require('lodash');
+
+// Validator
+let Validator = require('jsonschema').Validator,
+  validator = new Validator(),
+  schemaQuery = require('../schemas/auction-query'),
+  schemaDump = require('../schemas/auction-dump');
+
+// Errors
+let ApiError = require('../../lib/errors').ApiError,
+  MaxRetryError = require('../../lib/errors').MaxRetryError,
+  MalformedError = require('../../lib/errors').MalformedError;
+
+// Database
+let database = require('../helpers/database');
+
+database.connect();
 
 /*
   Query the API to get the dump.
   @param {string, string} URL to query, timestamp.
   @return {object} An object containing the result and the timestamp.
-  @error {ApiError}
+  @error {ApiError, MalformedError}
 */
 function getData(source, timestamp) {
-  let options = constants.default_query_options();
+  let options = constants.defaultQueryOptions();
   options.url = source;
 
   logger.log('api', 'Sended request to fetch auction dump for ' + source);
@@ -24,8 +43,9 @@ function getData(source, timestamp) {
   return new Promise(function(resolve, reject) {
     request(options, function(error, response, body) {
       logger.log('api', 'Received auction dump');
-      //TODO
-      if (response.statusCode === 200 && !error) {
+
+      if (response.statusCode === 200 && !error &&
+        validator.validate(body, schemaDump).valid) {
         resolve({
           timestamp: timestamp,
           results: body
@@ -41,71 +61,99 @@ function getData(source, timestamp) {
   Query the API to get the URL of the dump and then gets the dump.
   @param {string} Realm name.
   @return {object} The dump.
-  @error {ApiError}
+  @error {ApiError, MalformedError}
 */
 function query(server) {
   logger.log('api', 'Sent request to wow auction api for ' + server);
   return new Promise(function(resolve, reject) {
-    client.get(auction_url + server + query_end, function(data, response) {
+    client.get(auctionUrl + server + queryEnd, function(data, response) {
       logger.log('api', 'Received an anwser from wow api for ' + server);
       logger.log('api', data);
 
-      //TODO
-      if (!data && data.files && data.files[0]) {
+      if (response.statusCode !== 200) {
         reject(new ApiError(
-          'Problem with the API answer. Status code : ' + response.statusCode
-        ));
+          'Problem with the API answer. Status code : ' + response.statusCode));
+        return;
+      } else if (!validator.validate(data, schemaQuery).valid) {
+        reject(new MalformedError('Dump query'));
         return;
       }
 
-      console.log(data.files[0]);
-
-      getData(data.files[0].url, data.files[0].lastModified).then(
-        (results) => {
+      getData(data.files[0].url, data.files[0].lastModified)
+        .then((results) => {
           resolve(results);
         }).catch((e) => {
-        reject(e);
-      });
+          reject(e);
+        });
     });
   });
 }
+
 /*
-wowApi.queryWithRetry = function(server, retry) {
-  var self = this;
-  return this.query(server)
+  Query the API to get the URL of the dump and then gets the dump.
+  This will be executed a given number of tries.
+  @param {string, integer} Realm name.
+  @return {object} The dump.
+  @error {MaxRetryError}
+*/
+function queryWithRetry(server, retry) {
+  return query(server)
     .then(function(body) {
-      if (body && body.results && (body.results.realm || body.results.realms)) {
-        logger.log(1, body.results.realms);
-        logger.log(2, body.results.auctions.length);
-        return body;
-      } else {
-        logger.log(2, 'The body is malformed');
-        if (retry > 0)
-          return self.queryWithRetry(server, retry - 1);
-        else
-          throw new Error(server);
-      }
+      logger.log('api', body.results.realms, body.results.auctions.length);
+      return body;
     }).catch(function(e) {
-      logger.log(2, e);
+      logger.log(['api', 'error'], e);
       if (retry > 0)
-        return self.queryWithRetry(server, retry - 1);
+        return queryWithRetry(server, retry - 1);
       else
         throw new MaxRetryError(server);
     });
-};*/
+}
+
+// DB
+function insertDump(document, timestamp) {
+  if (!_.isArray(document))
+    document = [document];
+  //Add timestamp to every elements
+  document.forEach(function(item) {
+    item.timestamp = timestamp;
+  });
+  return database.insert(document, constants.tableNames.auction);
+}
 
 class auction {
-  constructor() {
-
-  }
+  constructor() {}
 
   /*
     Query the API for an array of auctions.
-    @param {string, !number} Realm name, number of retries.
+    @param {string, ?number} Realm name, number of retries.
     @return {array} An array of auctions.
   */
-  static fetch(server, retry) {
-    return query(server);
+  static fetchDump(server, retry) {
+    return queryWithRetry(server, retry || 0);
+  }
+
+  /*
+    Save a dump in MongoDB.
+    @param {object} The dump.
+    @return {object} The dump.
+    @error {DatabaseError}
+  */
+  static saveDump(dump) {
+    return insertDump(dump.results.auctions, dump.timestamp);
+  }
+
+  /*
+    Fetch a dump and save it in MongoDB.
+    @param {string, ?number} Realm name, number of retries.
+    @return {object} The dump.
+    @error {DatabaseError, ApiError}
+  */
+  static fetchAndSaveDump(server, retry) {
+    return auction.fetchDump(server, retry)
+    .then((res) => {
+      return auction.saveDump(res);
+    });
   }
 }
 

@@ -36,7 +36,7 @@ function ensureIndex() {
         return;
       } else
         logger.log(1, 'Unique index for auction id was added : ' + res);
-      collection = mongoDb.collection('items');
+      collection = mongoDb.collection('item');
       //Add unique index
       collection.ensureIndex({
         id: 1
@@ -132,7 +132,7 @@ dataProcess.count = function(server) {
 dataProcess.getItem = function(itemID) {
   var fn = function() {
     return new Promise(function(resolve, reject) {
-      var collection = mongoDb.collection('items');
+      var collection = mongoDb.collection('item');
       collection.findOne({
         id: itemID
       }, function(err, item) {
@@ -169,7 +169,7 @@ dataProcess.containItem = function(itemID) {
 
 dataProcess.insertItem = function(item) {
   return ensureDB().then(function() {
-    return dataProcess.insert(item, 'items');
+    return dataProcess.insert(item, 'item');
   });
 };
 
@@ -200,7 +200,7 @@ dataProcess.init = function(tableName) {
 dataProcess.getServers = function() {
   var fn = function() {
     return new Promise(function(resolve, reject) {
-      var collection = mongoDb.collection('servers');
+      var collection = mongoDb.collection('server');
       collection.find().toArray(function(err, servers) {
         if (err || !servers)
           reject(new Error(err));
@@ -225,7 +225,7 @@ dataProcess.setServers = function(servers) {
     return Promise.reject(new Error('The servers object had the wrong format'));
   return ensureDB().then(function() {
     return new Promise(function(resolve, reject) {
-      mongoDb.collection('servers').remove(function(e) {
+      mongoDb.collection('server').remove(function(e) {
         if (e)
           reject(e);
         else
@@ -233,7 +233,7 @@ dataProcess.setServers = function(servers) {
       });
     });
   }).then(function() {
-      return dataProcess.insert(servers, 'servers');
+      return dataProcess.insert(servers, 'server');
   });
 };
 

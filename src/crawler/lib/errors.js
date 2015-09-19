@@ -24,8 +24,26 @@ function ApiError(message) {
 ApiError.prototype = Object.create(Error.prototype);
 ApiError.prototype.constructor = ApiError;
 
+function MalformedError(message) {
+  this.message = message;
+  this.name = "MalformedError";
+  Error.captureStackTrace(this, MalformedError);
+}
+MalformedError.prototype = Object.create(Error.prototype);
+MalformedError.prototype.constructor = MalformedError;
+
+function DatabaseError(message) {
+  this.message = message;
+  this.name = "DatabaseError";
+  Error.captureStackTrace(this, DatabaseError);
+}
+DatabaseError.prototype = Object.create(Error.prototype);
+DatabaseError.prototype.constructor = DatabaseError;
+
 module.exports = {
   NotFoundError: NotFoundError,
   MaxRetryError: MaxRetryError,
-  ApiError: ApiError
+  ApiError: ApiError,
+  MalformedError: MalformedError,
+  DatabaseError: DatabaseError
 };

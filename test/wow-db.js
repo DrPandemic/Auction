@@ -53,7 +53,7 @@ function cleanDb(cb) {
     db.collection('itemQueue').remove(function(e) {
       if (e)
         console.error(e);
-      db.collection('items').remove(function(e) {
+      db.collection('item').remove(function(e) {
         if (e)
           console.error(e);
         cb();

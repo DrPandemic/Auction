@@ -21,6 +21,7 @@ To run the crawler ```npm start``` and ```npm run test``` to launch the tests.
 There's many things left to do. Those lists are not exhaustives
 ### Crawler
 - [ ] Rework the classes separation
+- [ ] Validate API responses
 - [ ] Have fun with node 4
 - [ ] Significant statistics
 - [ ] Gather data
@@ -29,6 +30,7 @@ There's many things left to do. Those lists are not exhaustives
 - [ ] Continue Abathur
 - [ ] Improve error management with node-rest-client
 - [x] Why is the logger not global...?
+- [ ] Logger : use subject rather than level
 
 ### Web
 - [ ] Choose which stack to use for frontend. Node rest + ng2?

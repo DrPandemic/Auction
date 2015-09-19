@@ -7,13 +7,15 @@
     "async": "^1.4.2",
     "bluebird": "^2.9.14",
     "hiredis": "^0.4.1",
+    "jsonschema": "^1.0.2",
     "lodash": "^3.10.1",
     "mongodb": "^2.0.42",
     "node-rest-client": "^1.4.3",
     "redis": "^1.0.0",
     "request": "^2.51.0",
     "sinon-as-promised": "^4.0.0",
-    "symbol": "^0.2.1"
+    "symbol": "^0.2.1",
+    "validatejs": "0.0.2"
   },
   "devDependencies": {
     "chai": "^3.2.0",

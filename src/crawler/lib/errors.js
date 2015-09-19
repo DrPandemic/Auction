@@ -16,7 +16,16 @@ function MaxRetryError(message) {
 MaxRetryError.prototype = Object.create(Error.prototype);
 MaxRetryError.prototype.constructor = MaxRetryError;
 
+function ApiError(message) {
+  this.message = message;
+  this.name = "ApiError";
+  Error.captureStackTrace(this, ApiError);
+}
+ApiError.prototype = Object.create(Error.prototype);
+ApiError.prototype.constructor = ApiError;
+
 module.exports = {
   NotFoundError: NotFoundError,
-  MaxRetryError: MaxRetryError
+  MaxRetryError: MaxRetryError,
+  ApiError: ApiError
 };

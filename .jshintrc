@@ -4,7 +4,8 @@
   "node": true,
   "couch": true,
   "expr": true,
-  "globals"      : {
-    "Promise"   : true
+  "esnext": true,
+  "globals" : {
+    "Promise" : true
   }
 }

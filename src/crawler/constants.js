@@ -22,5 +22,10 @@ module.exports = {
   mongoIndexes: require('./indexes'),
   tableNames: {
     auction: 'auction'
-  }
+  },
+  controllerStates: {
+    ready: 'ready',
+    busy: 'busy'
+  },
+  maxRetry: 5
 };

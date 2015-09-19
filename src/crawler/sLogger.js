@@ -1,6 +1,6 @@
 "use strict";
 let _ = require('lodash');
-const subjects = ['api', 'db', 'error'];
+const subjects = ['api', 'db', 'error', 'json'];
 let activeSubjects = [];
 
 class logger {
@@ -18,9 +18,11 @@ class logger {
           console.log(arguments[i]);
     }
   }
-  static activate(subject) {
-    if (activeSubjects.indexOf(subject) === -1 && subjects.indexOf(subject) > -1)
-      activeSubjects.push(subject);
+  static activate() {
+    for (let subject of arguments) {
+      if (activeSubjects.indexOf(subject) === -1 && subjects.indexOf(subject) > -1)
+        activeSubjects.push(subject);
+    }
   }
   static deactivate(subject) {
     if (subjects.indexOf(subject) > -1) {

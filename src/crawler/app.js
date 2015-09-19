@@ -1,10 +1,16 @@
 "use strict";
 
-var Queue = require('./lib/queue'),
-    queue = new Queue();
+let Queue = require('./lib/queue'),
+  queue = new Queue(),
+  logger = require('./sLogger'),
+  Auction = require('./app/controllers/auction'),
+  auction = new Auction();
 
-queue.listen('test', function(message) {
-  console.log(message);
-});
+logger.activate('error', 'api', 'db', 'json');
 
-queue.publish('test',44);
+auction.init()
+  .then(() => {
+    queue.listen('auction-query', function(message) {
+      auction.receiveQuery(message);
+    });
+  });

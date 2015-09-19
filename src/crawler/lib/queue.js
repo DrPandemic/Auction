@@ -4,7 +4,6 @@ var redis = require("redis"),
     prefix = 'channel_',
     logger = require('../logger'),
     listenTokens = [],
-    Symbol = require('symbol'),
     _ = require('lodash');
 
 
@@ -56,7 +55,7 @@ queue.prototype.listen = function(channel, callback) {
 
       //If the token is still present, execute the callback
       if(listenTokens.indexOf(token) !== -1) {
-        callback(message[1]);
+        callback(JSON.parse(message[1]));
 
         process.nextTick(listen);
       } else
@@ -71,7 +70,7 @@ queue.prototype.listen = function(channel, callback) {
   return token;
 };
 queue.prototype.send = function(channel, message) {
-  this.pub.rpush(prefix+channel, message);
+  this.pub.rpush(prefix+channel, JSON.stringify(message));
 };
 
 queue.prototype.stopListen = function(token) {

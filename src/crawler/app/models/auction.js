@@ -44,6 +44,7 @@ function getData(source, timestamp) {
       logger.log('api', 'Received auction dump');
 
       // Errors
+      logger.log('json', 'Validating...');
       if (response.statusCode !== 200 || error) {
         reject(new ApiError(error));
         return;

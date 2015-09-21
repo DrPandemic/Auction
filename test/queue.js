@@ -94,5 +94,8 @@ describe('queue', function() {
         done();
       });
     });
+    it('should test oneListen', () => {
+      return Promise.reject();
+    });
   });
 });

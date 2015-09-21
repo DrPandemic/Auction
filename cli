@@ -1,0 +1,44 @@
+#!/usr/bin/env node
+
+"use strict";
+let _ = require('lodash'),
+  Queue = require('./src/crawler/lib/queue'),
+  queue = new Queue();
+
+const baseFunctions = [
+  {
+    name: 'auction',
+    arg: 1
+}, {
+    name: 'auction-out',
+    arg: 0
+}
+];
+
+require('cli').withInput((line, newline, eof) => {
+  if (eof)
+    return;
+
+  let args = line.split(' ');
+  if (args.length < 1)
+    return;
+
+  //TODO test enough args
+  let result = _.find(baseFunctions, (el) => {
+    return el.name === args[0];
+  });
+  if (result === undefined)
+    return;
+
+  if ((result.arg + 1) > args.length)
+    return;
+
+  switch (args[0]) {
+    case baseFunctions[0].name:
+      queue.send('auction-query', {
+        name: args[1]
+      });
+      break;
+    default:
+  }
+});

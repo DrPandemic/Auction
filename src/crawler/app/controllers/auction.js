@@ -20,18 +20,16 @@ class AuctionCtrl extends Ctrl {
       });
   }
   processQuery(query) {
-    console.log(validator.validate(query, schema));
     if (!validator.validate(query, schema).valid)
-      return false;
+      return super.done();
 
-    auction.fetchAndSaveDump(query.name, maxRetry)
+    return auction.fetchAndSaveDump(query.name, maxRetry).bind(this)
       .catch((err) => {
         logger.log('error', err);
+        this.done();
       }).then(() => {
-        console.log(48);
+        this.done();
       });
-
-    return true;
   }
 }
 

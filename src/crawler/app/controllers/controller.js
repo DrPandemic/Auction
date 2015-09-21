@@ -1,7 +1,8 @@
 "use strict";
 
 let states = require('../../constants').controllerStates,
-  Promise = require('bluebird');
+  Promise = require('bluebird'),
+  logger = require('../../sLogger');
 
 class Controller {
   constructor() {
@@ -26,15 +27,24 @@ class Controller {
       .then(() => {
         this.dying = true;
         this.state = states.busy;
-      });
+      }).then(this.postStop);
   }
   preStop() {
+    return Promise.resolve();
+  }
+  postStop() {
     return Promise.resolve();
   }
   forceStop() {
     return this.stop().then(() => {
       this.forceDying = true;
     });
+  }
+
+  done() {
+    logger.log('worker', 'Task done');
+    if (!this.dying && !this.forceDying)
+      this.state = states.ready;
   }
 
   /*
@@ -45,13 +55,17 @@ class Controller {
   receiveQuery(query) {
     let ok = !this.dying && this.state !== states.busy;
     this.state = states.busy;
+    let promise;
     if (ok)
-      ok = this.processQuery(query);
+      promise = this.processQuery(query);
 
-    return ok;
+    return promise;
   }
 
-  processQuery() {}
+  processQuery() {
+    this.done();
+    return Promise.resolve();
+  }
 }
 
 module.exports = Controller;

@@ -6,11 +6,16 @@ let Queue = require('./lib/queue'),
   Auction = require('./app/controllers/auction'),
   auction = new Auction();
 
-logger.activate('error', 'api', 'db', 'json');
+logger.activateAll();
+
+function listen(message) {
+  auction.receiveQuery(message)
+    .finally(() => {
+      queue.oneListen('auction-query', listen);
+    });
+}
 
 auction.init()
   .then(() => {
-    queue.listen('auction-query', function(message) {
-      auction.receiveQuery(message);
-    });
+    queue.oneListen('auction-query', listen);
   });

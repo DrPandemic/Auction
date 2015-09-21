@@ -1,6 +1,6 @@
 "use strict";
 let _ = require('lodash');
-const subjects = ['api', 'db', 'error', 'json'];
+const subjects = ['api', 'db', 'error', 'json', 'worker', 'queue'];
 let activeSubjects = [];
 
 class logger {
@@ -28,8 +28,17 @@ class logger {
     if (subjects.indexOf(subject) > -1) {
       let index = activeSubjects.indexOf(subject);
       if (index > -1)
-        activeSubjects.splice();
+        activeSubjects.splice(index, 1);
     }
+  }
+  static activateAll() {
+    for (let subject of subjects) {
+      if (activeSubjects.indexOf(subject) === -1)
+        activeSubjects.push(subject);
+    }
+  }
+  static deactivateAll() {
+    activeSubjects.splice(0, activeSubjects.length);
   }
 }
 

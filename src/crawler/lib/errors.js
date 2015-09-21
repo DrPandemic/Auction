@@ -40,10 +40,19 @@ function DatabaseError(message) {
 DatabaseError.prototype = Object.create(Error.prototype);
 DatabaseError.prototype.constructor = DatabaseError;
 
+function RedisError(message) {
+  this.message = message;
+  this.name = "RedisError";
+  Error.captureStackTrace(this, RedisError);
+}
+RedisError.prototype = Object.create(Error.prototype);
+RedisError.prototype.constructor = RedisError;
+
 module.exports = {
   NotFoundError: NotFoundError,
   MaxRetryError: MaxRetryError,
   ApiError: ApiError,
   MalformedError: MalformedError,
-  DatabaseError: DatabaseError
+  DatabaseError: DatabaseError,
+  RedisError: RedisError
 };

@@ -1,4 +1,5 @@
 "use strict";
+// Deprecated
 
 var database = require('./lib/database'),
   servers = [],

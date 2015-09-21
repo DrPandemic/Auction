@@ -56,44 +56,7 @@ describe('queue', function() {
       }, 100);
     });
   });
-  describe('push/pop', function() {
-    it('should be able to listen and receive a message', function(done) {
-      var mes = 'asdasdasdas',
-        channel = 'test';
-      var client = queue.listen(channel, function(message) {
-        message.should.be.equal(mes);
-
-        queue.stopListen(client);
-        done();
-      });
-      queue.send(channel, mes);
-    });
-    it('should not receive message after stop', function(done) {
-      var mes = 'asdasdasdas',
-        channel = 'test',
-        called = false;
-      var client = queue.listen(channel, function(message) {
-        called = true;
-      });
-      queue.stopListen(client);
-      queue.send(channel, mes);
-      setTimeout(function() {
-        called.should.equal(false);
-        done();
-      }, 100);
-    });
-    it('should receive message sent before listening', function(done) {
-      var mes = 'asdasdasdas',
-        channel = 'test';
-
-      queue.send(channel, mes);
-      var client = queue.listen(channel, function(message) {
-        message.should.be.equal(mes);
-
-        queue.stopListen(client);
-        done();
-      });
-    });
+  describe('push/pop (oneListen)', function() {
     it('should test oneListen', () => {
       return Promise.reject();
     });

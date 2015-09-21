@@ -48,45 +48,9 @@ queue.prototype.publish = function(channel, message) {
   this.pub.publish(channel, message);
 };
 
-// Dnagerous
-queue.prototype.listen = function(channel, callback) {
-  logger.log('queue', 'Listen on ' + channel);
-  var client = redis.createClient(),
-    token = Symbol(),
-    self = this;
-
-  var listen = function() {
-    client.blpop(prefix + channel, 0, function(err, message) {
-      if (err)
-        return logger.log(['queue', 'error'], err);
-
-      //If the token is still present, execute the callback
-      if (listenTokens.indexOf(token) !== -1) {
-        logger.log('queue', 'Received a message on ' + channel);
-        callback(JSON.parse(message[1]));
-
-        process.nextTick(listen);
-        // Or send it back in the queue
-      } else
-        self.pub.lpush(prefix + channel, message[1]);
-    });
-  };
-
-  process.nextTick(listen);
-
-  listenTokens.push(token);
-
-  return token;
-};
 queue.prototype.send = function(channel, message) {
   logger.log('queue', 'Send on ' + channel);
   this.pub.rpush(prefix + channel, JSON.stringify(message));
-};
-queue.prototype.stopListen = function(token) {
-  logger.log('queue', 'Stop listen');
-  var index = listenTokens.indexOf(token);
-  if (index > -1)
-    listenTokens.splice(index, 1);
 };
 
 queue.prototype.oneListen = function(channel, cb) {

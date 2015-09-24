@@ -8,6 +8,7 @@ let rewire = require('rewire'),
   Promise = require('bluebird'),
   NotFoundError = require('../../../src/crawler/lib/errors').NotFoundError,
   DatabaseError = require('../../../src/crawler/lib/errors').DatabaseError,
+  MaxRetryError = require('../../../src/crawler/lib/errors').MaxRetryError,
   rejecter = null,
   auction = null,
   database = require('../../../src/crawler/app/helpers/database');
@@ -63,13 +64,48 @@ afterEach(function(done) {
 describe('auction', () => {
   describe('fetch dump', () => {
     it('should only retry the good amount of times', () => {
-      return Promise.reject();
+      let broke = false;
+      let stub = sinon.stub().rejects();
+      let backup = auction.__get__('query');
+      auction.__set__('query', stub);
+
+      return auction.fetchDump('grim-batol', 3)
+        .catch((err) => {
+          if (err instanceof MaxRetryError)
+            broke = true;
+          auction.__set__('query', backup);
+          stub.callCount.should.be.equal(4);
+          return Promise.resolve;
+        }).finally(() => {
+          broke.should.be.true;
+        });
     });
     it('should only called once when retry = 0', () => {
-      return Promise.reject();
+      let broke = false;
+      let stub = sinon.stub().rejects();
+      let backup = auction.__get__('query');
+      auction.__set__('query', stub);
+
+      return auction.fetchDump('grim-batol', 0)
+        .catch((err) => {
+          if (err instanceof MaxRetryError)
+            broke = true;
+          auction.__set__('query', backup);
+          stub.callCount.should.be.equal(1);
+          return Promise.resolve;
+        }).finally(() => {
+          broke.should.be.true;
+        });
     });
-    it('should succeed', () => {
-      return Promise.reject();
+    it('should be able to succeed', () => {
+      let stub = sinon.stub().resolves({results: require('../../data/auction-data-response')});
+      let backup = auction.__get__('query');
+      auction.__set__('query', stub);
+
+      return auction.fetchDump('grim-batol', 0)
+        .finally((err) => {
+          auction.__set__('query', backup);
+        }).should.be.fulfilled;
     });
     describe('api call', () => {
       it('should reject when doesn\'t receive a 200', function() {

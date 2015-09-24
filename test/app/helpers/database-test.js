@@ -9,7 +9,7 @@ let rewire = require('rewire'),
   NotFoundError = require('../../../src/crawler/lib/errors').NotFoundError,
   DatabaseError = require('../../../src/crawler/lib/errors').DatabaseError,
   rejecter = null,
-  database = require('../../../src/crawler/app/helpers/database');
+  database = rewire('../../../src/crawler/app/helpers/database');
 
 require('sinon-as-promised')(Promise);
 
@@ -54,29 +54,154 @@ after(() => {
   Promise.onPossiblyUnhandledRejection(rejecter);
 });
 
-afterEach(function(done) {
+afterEach((done) => {
   cleanDb().then(done);
 });
 
 describe('database', () => {
-  it('should be connected', function() {
+  it('should be connected', () => {
     return database.ensureDB().should.be.fulfilled;
   });
-  it('should test connection before every method calls', function() {
-    return Promise.reject();
+  it('should test connection before every method calls', () => {
+    let mongo = database.connection,
+      str = 'There was an error with the DB connection';
+    database.__set__('mongoDb', null);
+    mongo.should.exist;
+
+    // Silence the unhandled exceptions
+    let rejecter = Promise.onPossiblyUnhandledRejection;
+    Promise.onPossiblyUnhandledRejection(undefined);
+
+    var funcs = [
+          database.insert([], ''),
+          database.close()
+        ];
+
+    return Promise.settle(funcs).then((results) => {
+      var res = results.reduce((prev, current) => {
+        return prev && current.isRejected() &&
+          current.reason().message === str;
+      }, true);
+
+      database.__set__('mongoDb', mongo);
+      Promise.onPossiblyUnhandledRejection(rejecter);
+
+      return res ? Promise.resolve() : Promise.reject(new Error(
+        'At least one function didn\'t test the connection'));
+    });
   });
-  it('close should call mongo connection close', function() {
-    return Promise.reject();
+  it('close should call mongo connection close', () => {
+    var mongo = database.connection;
+    mongo.should.exist;
+
+    var close = sinon.stub(mongo, 'close');
+
+    return database.close()
+      .then(() => {
+        close.called.should.be.true;
+        mongo.close.restore();
+        database.__set__('mongoDb', mongo);
+        database.__set__('initialized', true);
+      });
   });
+
+
+
   describe('insert', () => {
-    it('should insert a array', function() {
-      return Promise.reject();
+    it('should insert a array', () => {
+      var mongo = database.connection;
+      mongo.should.exist;
+
+      var collection = sinon.stub(mongo, 'collection'),
+        newCollection = {},
+        insert = sinon.stub(),
+        doc = [{
+          wow: 1
+        }, {
+          ok: 2
+        }];
+
+      insert.callsArg(2);
+      newCollection.insert = insert;
+      collection.withArgs('auction').returns(newCollection);
+
+      return database.insert(doc, 'auction')
+        .then(() => {
+          newCollection.insert.calledWith(doc).should.be.true;
+          database.__get__('mongoDb').collection.restore();
+        });
     });
-    it('should insert a object', function() {
-      return Promise.reject();
+    it('should insert a object', () => {
+      var mongo = database.connection;
+      mongo.should.exist;
+
+      var collection = sinon.stub(mongo, 'collection'),
+        newCollection = {},
+        insert = sinon.stub(),
+        doc = {
+          wow: 1
+        };
+
+      insert.callsArg(2);
+      newCollection.insert = insert;
+      collection.withArgs('auction').returns(newCollection);
+
+      return database.insert(doc, 'auction')
+        .then(function() {
+          newCollection.insert.calledWith(doc).should.be.true;
+          database.__get__('mongoDb').collection.restore();
+        });
     });
-    it('should be rejected when insert produce an error other than duplicate', function() {
-      return Promise.reject();
+    it('should be rejected when insert produce an error other than duplicate', () => {
+      var mongo = database.connection;
+      mongo.should.exist;
+
+      var collection = sinon.stub(mongo, 'collection'),
+        newCollection = {},
+        insert = sinon.stub(),
+        doc = {
+          wow: 1
+        };
+
+      var error = require('../../data/mongo-duplicate-error');
+      //Not 110000 which is duplicate
+      error.code = 10;
+      insert.callsArgWith(2, error);
+      newCollection.insert = insert;
+      collection.withArgs('auction').returns(newCollection);
+
+      return database.insert(doc, 'auction')
+        .finally(function() {
+          database.__get__('mongoDb').collection.restore();
+        }).should.be.rejected;
+    });
+
+    describe('real data', () => {
+      it('close should cause errors to the next method calls', () => {
+        let broke = false;
+
+        return database.close()
+          .then(() => {
+            return database.insert([], 'auction');
+          }).catch((err) => {
+            if (err instanceof DatabaseError)
+              broke = true;
+          }).finally(() => {
+            broke.should.be.true;
+            return database.connect();
+          });
+      });
+
+      // TODO: We need some func to read the DB.
+      // I guess we could do it with the count
+      describe('insert', () => {
+        it('should insert a array', () => {
+          return Promise.reject();
+        });
+        it('should insert a object', () => {
+          return Promise.reject();
+        });
+      });
     });
   });
 });

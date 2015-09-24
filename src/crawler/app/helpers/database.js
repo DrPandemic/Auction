@@ -1,6 +1,5 @@
 "use strict";
 
-// Const
 let constants = require('../../constants'),
   initialized = false,
   mongoDb;
@@ -73,7 +72,7 @@ function insert(document, collectionName) {
         w: 1,
         keepGoing: true
       }, function(err, result) {
-        //Duplicate errors
+        // Duplicate errors
         if (err && !(err.code === 11000 || err.code === 11001)) {
           reject(err);
         } else
@@ -113,7 +112,7 @@ class database {
 
   /*
     Get the connection object.
-    Use it at your risk because it doesn't test the connection.
+    Use it at your own risk because it doesn't test the connection object.
     @return {object} MongoDB connection.
   */
   static get connection() {
@@ -124,6 +123,8 @@ class database {
     return ensureDB().then(function() {
       logger.log('db', 'Closing DB connection');
       mongoDb.close();
+      mongoDb = null;
+      initialized = false;
       return Promise.resolve();
     });
   }

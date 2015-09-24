@@ -25,6 +25,7 @@ There's many things left to do. Those lists are not exhaustives
 - [ ] CLI
 - [x] Validate API responses
 - [x] Have fun with node 4
+- [ ] ES6 imports (to considere)
 - [ ] Significant statistics
 - [ ] Gather data
 - [ ] Work with server with multiple name (not even sure what it means)

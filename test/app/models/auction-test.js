@@ -13,6 +13,8 @@ let rewire = require('rewire'),
   auction = null,
   database = require('../../../src/crawler/app/helpers/database');
 
+//require('../../../src/crawler/sLogger').activateAll();
+
 require('sinon-as-promised')(Promise);
 
 var should = chai.Should();
@@ -98,7 +100,9 @@ describe('auction', () => {
         });
     });
     it('should be able to succeed', () => {
-      let stub = sinon.stub().resolves({results: require('../../data/auction-data-response')});
+      let stub = sinon.stub().resolves({
+        results: require('../../data/auction-data-response')
+      });
       let backup = auction.__get__('query');
       auction.__set__('query', stub);
 
@@ -107,23 +111,182 @@ describe('auction', () => {
           auction.__set__('query', backup);
         }).should.be.fulfilled;
     });
-    describe('api call', () => {
+    it('should be able to succeed (not stubing all the query())', () => {
+      var client = {
+          get: function(url, cb) {
+            cb(require('../../data/auction-data'), {
+              statusCode: 200
+            });
+            return {
+              on: () => {}
+            };
+          }
+        },
+        backup = auction.__get__('client');
+
+      auction.__set__('client', client);
+
+      var request = function(opt, cb) {
+          cb(null, {
+            statusCode: 200
+          }, require('../../data/auction-data-response'));
+        },
+        requestBackup = auction.__get__('request');
+      auction.__set__('request', request);
+
+      return auction.fetchDump('grim-batol', 0)
+        .finally(function() {
+          auction.__set__('client', backup);
+          auction.__set__('request', requestBackup);
+        }).should.be.fulfilled;
+    });
+    describe('api call (client)', () => {
       it('should reject when doesn\'t receive a 200', function() {
-        return Promise.reject();
+        var client = {
+            get: function(url, cb) {
+              cb(require('../../data/auction-data'), {
+                statusCode: 400
+              });
+              return {
+                on: () => {}
+              };
+            }
+          },
+          backup = auction.__get__('client');
+
+        auction.__set__('client', client);
+
+        var request = function(opt, cb) {
+            cb(null, {
+              statusCode: 200
+            }, require('../../data/auction-data-response'));
+          },
+          requestBackup = auction.__get__('request');
+        auction.__set__('request', request);
+
+        return auction.fetchDump('grim-batol', 0)
+          .finally(function() {
+            auction.__set__('client', backup);
+            auction.__set__('request', requestBackup);
+          }).should.be.rejected;
       });
       it('should reject when receive malformed data', () => {
-        return Promise.reject();
+        var client = {
+            get: function(url, cb) {
+              cb({}, {
+                statusCode: 200
+              });
+              return {
+                on: () => {}
+              };
+            }
+          },
+          backup = auction.__get__('client');
+
+        auction.__set__('client', client);
+
+        var request = function(opt, cb) {
+            cb(null, {
+              statusCode: 200
+            }, require('../../data/auction-data-response'));
+          },
+          requestBackup = auction.__get__('request');
+        auction.__set__('request', request);
+
+        return auction.fetchDump('grim-batol', 0)
+          .finally(function() {
+            auction.__set__('client', backup);
+            auction.__set__('request', requestBackup);
+          }).should.be.rejected;
       });
     });
-    describe('dump (getData)', () => {
+    describe('dump (getData with request)', () => {
       it('should reject when doesn\'t receive a 200', function() {
-        return Promise.reject();
+        var client = {
+            get: function(url, cb) {
+              cb(require('../../data/auction-data'), {
+                statusCode: 200
+              });
+              return {
+                on: () => {}
+              };
+            }
+          },
+          backup = auction.__get__('client');
+
+        auction.__set__('client', client);
+
+        var request = function(opt, cb) {
+            cb(null, {
+              statusCode: 400
+            }, require('../../data/auction-data-response'));
+          },
+          requestBackup = auction.__get__('request');
+        auction.__set__('request', request);
+
+        return auction.fetchDump('grim-batol', 0)
+          .finally(function() {
+            auction.__set__('client', backup);
+            auction.__set__('request', requestBackup);
+          }).should.be.rejected;
       });
       it('should reject when receive an request error', function() {
-        return Promise.reject();
+        var client = {
+            get: function(url, cb) {
+              cb(require('../../data/auction-data'), {
+                statusCode: 200
+              });
+              return {
+                on: () => {}
+              };
+            }
+          },
+          backup = auction.__get__('client');
+
+        auction.__set__('client', client);
+
+        var request = function(opt, cb) {
+            cb({error: 'indeed'}, {
+              statusCode: 200
+            }, require('../../data/auction-data-response'));
+          },
+          requestBackup = auction.__get__('request');
+        auction.__set__('request', request);
+
+        return auction.fetchDump('grim-batol', 0)
+          .finally(function() {
+            auction.__set__('client', backup);
+            auction.__set__('request', requestBackup);
+          }).should.be.rejected;
       });
       it('should reject when receive malformed data', () => {
-        return Promise.reject();
+        var client = {
+            get: function(url, cb) {
+              cb(require('../../data/auction-data'), {
+                statusCode: 200
+              });
+              return {
+                on: () => {}
+              };
+            }
+          },
+          backup = auction.__get__('client');
+
+        auction.__set__('client', client);
+
+        var request = function(opt, cb) {
+            cb(null, {
+              statusCode: 200
+            }, {});
+          },
+          requestBackup = auction.__get__('request');
+        auction.__set__('request', request);
+
+        return auction.fetchDump('grim-batol', 0)
+          .finally(function() {
+            auction.__set__('client', backup);
+            auction.__set__('request', requestBackup);
+          }).should.be.rejected;
       });
     });
   });

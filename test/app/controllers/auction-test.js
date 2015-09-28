@@ -60,7 +60,7 @@ afterEach(function(done) {
   cleanDb().then(done);
 });
 
-describe('auction', () => {
+describe('auction controller', () => {
   describe('real data', () => {
     it('should succeed after being init', () => {
       return Promise.reject();

@@ -13,6 +13,12 @@ let mongoClient = require('mongodb').MongoClient,
 // Errors
 let DatabaseError = require('../../lib/errors').DatabaseError;
 
+/*
+  Try to connect to MongoDB.
+  @param {string} DB's name.
+  @return {object} MongoDB connection.
+  @error {DatabaseError}
+*/
 function connect(name) {
   return new Promise(function(resolve, reject) {
     var url = constants.mongoConnectionString + (name || 'wow');
@@ -31,6 +37,11 @@ function connect(name) {
   }).then(ensureIndex);
 }
 
+/*
+  Ensure that the DB is connected.
+  @return {object} MongoDB connection.
+  @error {DatabaseError}
+*/
 function ensureDB() {
   return new Promise(function(resolve, reject) {
     if (!initialized || !mongoDb)
@@ -40,6 +51,10 @@ function ensureDB() {
   });
 }
 
+/*
+  Ensure that the DB is well constructed
+  @error {DatabaseError}
+*/
 function ensureIndex() {
   return new Promise(function(resolve, reject) {
     async.each(constants.mongoIndexes, (index, cb) => {
@@ -62,8 +77,14 @@ function ensureIndex() {
   });
 }
 
+/*
+  Insert a document in a given collection.
+  @param {object, string} Object to insert, collection name.
+  @return {object} The inserted document.
+  @error {DatabaseError}
+*/
 function insert(document, collectionName) {
-  var fn = function() {
+  return ensureDB().then(() => {
     return new Promise(function(resolve, reject) {
       var collection = mongoDb.collection(collectionName);
       logger.log('db', 'Inserting...');
@@ -74,13 +95,12 @@ function insert(document, collectionName) {
       }, function(err, result) {
         // Duplicate errors
         if (err && !(err.code === 11000 || err.code === 11001)) {
-          reject(err);
+          reject(new DatabaseError(err));
         } else
           resolve(document);
       });
     });
-  };
-  return ensureDB().then(fn);
+  });
 }
 
 class database {

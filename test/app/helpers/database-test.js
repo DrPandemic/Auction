@@ -16,28 +16,7 @@ require('sinon-as-promised')(Promise);
 var should = chai.Should();
 chai.use(chaiAsPromised);
 
-function cleanDb() {
-  return new Promise((resolve) => {
-    var db = database.connection;
-    db.collection('auction').remove((e) => {
-      if (e)
-        console.error(e);
-      db.collection('itemQueue').remove((e) => {
-        if (e)
-          console.error(e);
-        db.collection('item').remove((e) => {
-          if (e)
-            console.error(e);
-          db.collection('server').remove((e) => {
-            if (e)
-              console.error(e);
-            resolve();
-          });
-        });
-      });
-    });
-  });
-}
+var cleanDb = require('../models/model-test').cleanDb;
 
 before((done) => {
   rejecter = Promise.onPossiblyUnhandledRejection;
@@ -211,6 +190,15 @@ describe('database', () => {
       return Promise.reject();
     });
     it('should failed with DatabaseError when MongoDB bad trips', () => {
+      return Promise.reject();
+    });
+  });
+
+  describe('count', () => {
+    it('should returns 0 when no documents follow the selector', () => {
+      return Promise.reject();
+    });
+    it('should returns the right amount of documents', () => {
       return Promise.reject();
     });
   });

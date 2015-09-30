@@ -127,6 +127,19 @@ function findOne(selector, collectionName) {
   });
 }
 
+/*
+  Count the number of documents in a given collection.
+  @param {object, string} Query selector, collection name.
+  @return {Integer} Number of documents.
+  @error {DatabaseError}
+*/
+function count(selector, collectionName) {
+  return ensureDB().then(() => {
+    var collection = mongoDb.collection(collectionName);
+    return collection.count(selector);
+  });
+}
+
 class database {
   constructor() {}
 
@@ -192,6 +205,17 @@ class database {
   static findOne(selector, collectionName) {
     return findOne(selector, collectionName);
   }
+
+  /*
+    Count the number of documents in a given collection.
+    @param {object, string} Query selector, collection name.
+    @return {Integer} Number of documents.
+    @error {DatabaseError}
+  */
+  static count(selector, collectionName) {
+    return count(selector, collectionName);
+  }
+
 }
 
 module.exports = database;

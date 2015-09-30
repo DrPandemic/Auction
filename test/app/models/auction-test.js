@@ -1,48 +1,34 @@
 "use strict";
 
+// Packages
 let rewire = require('rewire'),
   chai = require('chai'),
   chaiAsPromised = require('chai-as-promised'),
   sinon = require('sinon'),
   assert = chai.assert,
-  Promise = require('bluebird'),
-  NotFoundError = require('../../../src/crawler/lib/errors').NotFoundError,
-  DatabaseError = require('../../../src/crawler/lib/errors').DatabaseError,
-  MaxRetryError = require('../../../src/crawler/lib/errors').MaxRetryError,
-  rejecter = null,
+  Promise = require('bluebird');
+
+require('sinon-as-promised')(Promise);
+var should = chai.Should();
+chai.use(chaiAsPromised);
+
+// Vars
+let rejecter = null,
   auction = null,
   database = require('../../../src/crawler/app/helpers/database'),
   constants = require('../../../src/crawler/constants');
 
-//require('../../../src/crawler/sLogger').activateAll();
+// Errors
+let NotFoundError = require('../../../src/crawler/lib/errors').NotFoundError,
+  DatabaseError = require('../../../src/crawler/lib/errors').DatabaseError,
+  MaxRetryError = require('../../../src/crawler/lib/errors').MaxRetryError;
 
 require('sinon-as-promised')(Promise);
 
 var should = chai.Should();
 chai.use(chaiAsPromised);
 
-function cleanDb() {
-  return new Promise((resolve) => {
-    var db = database.connection;
-    db.collection('auction').remove((e) => {
-      if (e)
-        console.error(e);
-      db.collection('itemQueue').remove((e) => {
-        if (e)
-          console.error(e);
-        db.collection('item').remove((e) => {
-          if (e)
-            console.error(e);
-          db.collection('server').remove((e) => {
-            if (e)
-              console.error(e);
-            resolve();
-          });
-        });
-      });
-    });
-  });
-}
+var cleanDb = require('./model-test').cleanDb;
 
 before((done) => {
   rejecter = Promise.onPossiblyUnhandledRejection;
@@ -338,7 +324,7 @@ describe('auction', function() {
     });
 
   });
-  describe('real data', function() {
+  describe.skip('real data', function() {
     it('should receive dump', function() {
       this.timeout(25 * 1000);
       return auction.fetchDump('grim-batol', 10)

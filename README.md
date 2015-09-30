@@ -34,6 +34,7 @@ There's many things left to do. Those lists are not exhaustives
 - [x] Improve error management with node-rest-client
 - [x] Why is the logger not global...?
 - [x] Logger : Use subject rather than level
+- [ ] Cleaner : model-test.cleanDb()
 
 ### Web
 - [ ] Choose which stack to use for frontend. Node rest + ng2?

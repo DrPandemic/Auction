@@ -21,7 +21,8 @@ module.exports = {
   mongoConnectionString: 'mongodb://localhost:27017/',
   mongoIndexes: require('./indexes'),
   tableNames: {
-    auction: 'auction'
+    auction: 'auction',
+    item: 'item'
   },
   controllerStates: {
     ready: 'ready',

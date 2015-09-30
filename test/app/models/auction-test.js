@@ -11,7 +11,8 @@ let rewire = require('rewire'),
   MaxRetryError = require('../../../src/crawler/lib/errors').MaxRetryError,
   rejecter = null,
   auction = null,
-  database = require('../../../src/crawler/app/helpers/database');
+  database = require('../../../src/crawler/app/helpers/database'),
+  constants = require('../../../src/crawler/constants');
 
 //require('../../../src/crawler/sLogger').activateAll();
 
@@ -63,7 +64,7 @@ afterEach(function(done) {
   cleanDb().then(done);
 });
 
-describe('auction', () => {
+describe('auction', function() {
   describe('fetch dump', () => {
     it('should only retry the good amount of times', () => {
       let broke = false;
@@ -246,7 +247,9 @@ describe('auction', () => {
         auction.__set__('client', client);
 
         var request = function(opt, cb) {
-            cb({error: 'indeed'}, {
+            cb({
+              error: 'indeed'
+            }, {
               statusCode: 200
             }, require('../../data/auction-data-response'));
           },
@@ -290,19 +293,62 @@ describe('auction', () => {
       });
     });
   });
-  describe('featch and save dump', () => {
+
+  // This is debatable, but we are testing the insertDump.
+  describe('fetch and save dump', () => {
     it('should succeed even whitout an array', function() {
-      return Promise.reject();
+      let stub = sinon.stub().resolves();
+      let backup = database.insert;
+      database.insert = stub;
+
+
+      return auction.__get__('insertDump')({
+          foo: 1
+        }, 0)
+        .then(function() {
+          database.insert = backup;
+          assert(stub.calledWith([{
+            foo: 1,
+            timestamp: 0
+          }]));
+        });
     });
+
     it('should adds timestamp', function() {
-      return Promise.reject();
+      let stub = sinon.stub().resolves();
+      let backup = database.insert;
+      database.insert = stub;
+
+
+      return auction.__get__('insertDump')([{
+          foo: 1
+        }, {
+          bar: 1
+        }], 0)
+        .then(function() {
+          database.insert = backup;
+          assert(stub.calledWith([{
+            foo: 1,
+            timestamp: 0
+          }, {
+            bar: 1,
+            timestamp: 0
+          }]));
+        });
     });
 
   });
-  describe('real data', () => {
-    it('should receive dump', () => {
-      return Promise.reject();
+  describe('real data', function() {
+    it('should receive dump', function() {
+      this.timeout(25 * 1000);
+      return auction.fetchDump('grim-batol', 10)
+        .then((result) => {
+          result.should.have.property('results');
+          result.results.auctions.should.have.length.of.at.least(1000);
+        });
     });
+    // TODO
+    // I guess we could do it with the count
     it('should save a dump', () => {
       return Promise.reject();
     });

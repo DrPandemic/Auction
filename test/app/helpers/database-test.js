@@ -105,8 +105,6 @@ describe('database', () => {
       });
   });
 
-
-
   describe('insert', () => {
     it('should insert a array', () => {
       var mongo = database.connection;
@@ -202,6 +200,18 @@ describe('database', () => {
           return Promise.reject();
         });
       });
+    });
+  });
+
+  describe('findOne', () => {
+    it('should only find one document', () => {
+      return Promise.reject();
+    });
+    it('should failed with NotFoundError when no document found', () => {
+      return Promise.reject();
+    });
+    it('should failed with DatabaseError when MongoDB bad trips', () => {
+      return Promise.reject();
     });
   });
 });

@@ -11,7 +11,8 @@ let mongoClient = require('mongodb').MongoClient,
   async = require('async');
 
 // Errors
-let DatabaseError = require('../../lib/errors').DatabaseError;
+let DatabaseError = require('../../lib/errors').DatabaseError,
+  NotFoundError = require('../../lib/errors').NotFoundError;
 
 /*
   Try to connect to MongoDB.
@@ -103,6 +104,29 @@ function insert(document, collectionName) {
   });
 }
 
+/*
+  Find one document in a given collection.
+  @param {object, string} Query selector, collection name.
+  @return {object} The document.
+  @error {DatabaseError, NotFoundError}
+*/
+function findOne(selector, collectionName) {
+  return ensureDB().then(() => {
+    return new Promise(function(resolve, reject) {
+      logger.log('db', 'Finding one from ' + collectionName);
+      var collection = mongoDb.collection(collectionName);
+      collection.findOne(selector, function(err, result) {
+        if (err)
+          reject(new DatabaseError(err));
+        else if (!result)
+          reject(new NotFoundError("Wasn't able to find a item in " + collectionName));
+        else
+          resolve(result);
+      });
+    });
+  });
+}
+
 class database {
   constructor() {}
 
@@ -149,8 +173,24 @@ class database {
     });
   }
 
+  /*
+    Insert a document in a given collection.
+    @param {object, string} Object to insert, collection name.
+    @return {object} The inserted document.
+    @error {DatabaseError}
+  */
   static insert(document, collectionName) {
     return insert(document, collectionName);
+  }
+
+  /*
+    Find one document in a given collection.
+    @param {object, string} Query selector, collection name.
+    @return {object} The document.
+    @error {DatabaseError, NotFoundError}
+  */
+  static findOne(selector, collectionName) {
+    return findOne(selector, collectionName);
   }
 }
 

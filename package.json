@@ -31,7 +31,7 @@
     "sinon": "^1.12.2"
   },
   "scripts": {
-    "test": "jshint src/crawler/*.js src/crawler/lib/*.js & node_modules/.bin/mocha",
+    "test": "jshint src/crawler/*.js src/crawler/lib/*.js & node_modules/.bin/mocha -d",
     "start": "cd src/crawler && node ./crawler.js -w ./",
     "watch": "cd src/crawler && nodemon ./abathur.js -w ./",
     "debug": "cd src/crawler && node-debug ./crawler.js",

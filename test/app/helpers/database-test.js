@@ -101,9 +101,9 @@ describe('database', () => {
 
       insert.callsArg(2);
       newCollection.insert = insert;
-      collection.withArgs('auction').returns(newCollection);
+      collection.withArgs('test').returns(newCollection);
 
-      return database.insert(doc, 'auction')
+      return database.insert(doc, 'test')
         .then(() => {
           newCollection.insert.calledWith(doc).should.be.true;
           database.__get__('mongoDb').collection.restore();
@@ -122,9 +122,9 @@ describe('database', () => {
 
       insert.callsArg(2);
       newCollection.insert = insert;
-      collection.withArgs('auction').returns(newCollection);
+      collection.withArgs('test').returns(newCollection);
 
-      return database.insert(doc, 'auction')
+      return database.insert(doc, 'test')
         .then(function() {
           newCollection.insert.calledWith(doc).should.be.true;
           database.__get__('mongoDb').collection.restore();
@@ -146,9 +146,9 @@ describe('database', () => {
       error.code = 10;
       insert.callsArgWith(2, error);
       newCollection.insert = insert;
-      collection.withArgs('auction').returns(newCollection);
+      collection.withArgs('test').returns(newCollection);
 
-      return database.insert(doc, 'auction')
+      return database.insert(doc, 'test')
         .finally(function() {
           database.__get__('mongoDb').collection.restore();
         }).should.be.rejected;
@@ -160,7 +160,7 @@ describe('database', () => {
 
         return database.close()
           .then(() => {
-            return database.insert([], 'auction');
+            return database.insert([], 'test');
           }).catch((err) => {
             if (err instanceof DatabaseError)
               broke = true;
@@ -170,14 +170,44 @@ describe('database', () => {
           });
       });
 
-      // TODO: We need some func to read the DB.
-      // I guess we could do it with the count
       describe('insert', () => {
-        it('should insert a array', () => {
-          return Promise.reject();
+        it('should insert an array', () => {
+          let collection = "test",
+            document = {
+              foo: 'bar'
+            },
+            document1 = {
+              foo: 'bar',
+              again: 1
+            };
+          return database.count(document, collection)
+            .then((result) => {
+              result.should.be.eq(0);
+              return database.insert([document, document1], collection);
+            }).then(() => {
+              return database.count({
+                foo: 'bar'
+              }, collection);
+            }).then((result) => {
+              result.should.be.eq(2);
+            });
         });
-        it('should insert a object', () => {
-          return Promise.reject();
+        it('should insert an object', () => {
+          let collection = "test",
+            document = {
+              foo: 'bar'
+            };
+          return database.count(document, collection)
+            .then((result) => {
+              result.should.be.eq(0);
+              return database.insert(document, collection);
+            }).then(() => {
+              return database.count({
+                foo: 'bar'
+              }, collection);
+            }).then((result) => {
+              result.should.be.eq(1);
+            });
         });
       });
     });
@@ -185,7 +215,7 @@ describe('database', () => {
 
   describe('findOne', () => {
     it('should only find one document', () => {
-      let collection = "auction",
+      let collection = "test",
         document = {
           foo: 'bar'
         };
@@ -204,7 +234,7 @@ describe('database', () => {
         });
     });
     it('should failed with NotFoundError when no document found', () => {
-      let collection = "auction";
+      let collection = "test";
       return database.findOne({}, collection)
         .should.be.rejectedWith(NotFoundError);
     });
@@ -221,9 +251,9 @@ describe('database', () => {
       error.code = 10;
       findOne.callsArgWith(1, error);
       newCollection.findOne = findOne;
-      collection.withArgs('auction').returns(newCollection);
+      collection.withArgs('test').returns(newCollection);
 
-      return database.findOne({}, 'auction')
+      return database.findOne({}, 'test')
         .finally(function() {
           database.__get__('mongoDb').collection.restore();
         }).should.be.rejectedWith(DatabaseError);
@@ -232,14 +262,14 @@ describe('database', () => {
 
   describe('count', () => {
     it('should returns 0 when no documents follow the selector test', () => {
-      let collection = "auction";
+      let collection = "test";
       return database.count({}, collection)
         .then((result) => {
           result.should.be.eq(0);
         });
     });
     it('should returns the right amount of documents test', () => {
-      let collection = "auction";
+      let collection = "test";
       return database.count({}, collection)
         .then((result) => {
           result.should.be.eq(0);

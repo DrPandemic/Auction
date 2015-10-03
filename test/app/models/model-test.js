@@ -1,7 +1,7 @@
 "use strict";
 
 let database = require('../../../src/crawler/app/helpers/database'),
-  collectionsToClean = ['auction, itemQueue', 'item', 'server'],
+  collectionsToClean = ['auction, itemQueue', 'item', 'server', 'test'],
   async = require('async');
 
 module.exports = {

@@ -9,7 +9,8 @@ let rewire = require('rewire'),
   NotFoundError = require('../../../src/crawler/lib/errors').NotFoundError,
   DatabaseError = require('../../../src/crawler/lib/errors').DatabaseError,
   rejecter = null,
-  database = rewire('../../../src/crawler/app/helpers/database');
+  database = rewire('../../../src/crawler/app/helpers/database'),
+  _ = require('lodash');
 
 require('sinon-as-promised')(Promise);
 
@@ -165,7 +166,7 @@ describe('database', () => {
               broke = true;
           }).finally(() => {
             broke.should.be.true;
-            return database.connect();
+            return database.connect('wowTest');
           });
       });
 
@@ -184,25 +185,60 @@ describe('database', () => {
 
   describe('findOne', () => {
     it('should only find one document', () => {
-      return Promise.reject();
+      let collection = "auction",
+        document = {
+          foo: 'bar'
+        };
+
+      return database.count({}, collection)
+        .then((result) => {
+          result.should.be.eq(0);
+          return database.insert(document, collection);
+        }).then(() => {
+          return database.insert(document, collection);
+        }).then(() => {
+          return database.findOne({}, collection);
+        }).then((result) => {
+          _.isPlainObject(result).should.be.true;
+          _.isString(result.foo).should.be.true;
+        });
     });
     it('should failed with NotFoundError when no document found', () => {
-      return Promise.reject();
+      let collection = "auction";
+      return database.findOne({}, collection)
+        .should.be.rejectedWith(NotFoundError);
     });
     it('should failed with DatabaseError when MongoDB bad trips', () => {
-      return Promise.reject();
+      let mongo = database.connection;
+      mongo.should.exist;
+
+      let collection = sinon.stub(mongo, 'collection'),
+        newCollection = {},
+        findOne = sinon.stub();
+
+      let error = require('../../data/mongo-duplicate-error');
+      //Not 110000 which is duplicate
+      error.code = 10;
+      findOne.callsArgWith(1, error);
+      newCollection.findOne = findOne;
+      collection.withArgs('auction').returns(newCollection);
+
+      return database.findOne({}, 'auction')
+        .finally(function() {
+          database.__get__('mongoDb').collection.restore();
+        }).should.be.rejectedWith(DatabaseError);
     });
   });
 
   describe('count', () => {
-    it('should returns 0 when no documents follow the selector', () => {
+    it('should returns 0 when no documents follow the selector test', () => {
       let collection = "auction";
       return database.count({}, collection)
         .then((result) => {
           result.should.be.eq(0);
         });
     });
-    it('should returns the right amount of documents', () => {
+    it('should returns the right amount of documents test', () => {
       let collection = "auction";
       return database.count({}, collection)
         .then((result) => {

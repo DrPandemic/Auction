@@ -1,28 +1,16 @@
 "use strict";
 
-let database = require('../../../src/crawler/app/helpers/database');
+let database = require('../../../src/crawler/app/helpers/database'),
+  collectionsToClean = ['auction, itemQueue', 'item', 'server'],
+  async = require('async');
 
 module.exports = {
   cleanDb: () => {
     return new Promise((resolve) => {
-      var db = database.connection;
-      db.collection('auction').remove((e) => {
-        if (e)
-          console.error(e);
-        db.collection('itemQueue').remove((e) => {
-          if (e)
-            console.error(e);
-          db.collection('item').remove((e) => {
-            if (e)
-              console.error(e);
-            db.collection('server').remove((e) => {
-              if (e)
-                console.error(e);
-              resolve();
-            });
-          });
-        });
-      });
+      let db = database.connection;
+      async.eachSeries(collectionsToClean, (item, cb)=> {
+        db.collection(item).remove(cb);
+      }, resolve);
     });
   },
   logAll: () => {

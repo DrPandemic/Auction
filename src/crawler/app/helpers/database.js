@@ -150,6 +150,7 @@ class database {
     @error {DatabaseError}
   */
   static connect(name) {
+  //  console.log(name);
     if (!initialized) {
       initialized = true;
       return connect(name);

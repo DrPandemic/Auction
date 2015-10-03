@@ -196,10 +196,25 @@ describe('database', () => {
 
   describe('count', () => {
     it('should returns 0 when no documents follow the selector', () => {
-      return Promise.reject();
+      let collection = "auction";
+      return database.count({}, collection)
+        .then((result) => {
+          result.should.be.eq(0);
+        });
     });
     it('should returns the right amount of documents', () => {
-      return Promise.reject();
+      let collection = "auction";
+      return database.count({}, collection)
+        .then((result) => {
+          result.should.be.eq(0);
+          return database.insert({
+            foo: 'bar'
+          }, collection);
+        }).then(() => {
+          return database.count({}, collection);
+        }).then((result) => {
+          result.should.be.eq(1);
+        });
     });
   });
 });

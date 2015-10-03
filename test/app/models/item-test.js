@@ -51,7 +51,8 @@ describe('item', function() {
       return Promise.reject();
     });
     it('should rejects if tries to find unexisting item', () => {
-      return Promise.reject();
+      return item.find('test')
+        .should.be.rejectedWith(NotFoundError);
     });
   });
 });

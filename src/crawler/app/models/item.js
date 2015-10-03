@@ -28,7 +28,7 @@ class item {
     @return {object} The item.
     @error {DatabaseError, NotFoundError}
   */
-  static get(itemID) {
+  static find(itemID) {
     return database.findOne({
       id: itemID
     }, constants.tableNames.item);

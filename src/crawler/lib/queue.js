@@ -55,13 +55,19 @@ queue.prototype.send = function(channel, message) {
 
 queue.prototype.oneListen = function(channel, cb) {
   let client = redis.createClient();
-  client.blpop(prefix + channel, 0, function(err, message) {
+
+  client.blpop(prefix + channel, 0, (err, message) => {
     if (err)
-      return logger.log(['queue', 'error'], err);
+      logger.log(['queue', 'error'], err);
 
     logger.log('queue', 'Received a message on ' + channel);
     process.nextTick(() => {
-      cb(JSON.parse(message[1]));
+      client.quit();
+      if (!err)
+        cb(null, JSON.parse(message[1]));
+      else {
+        cb(err);
+      }
     });
   });
 };

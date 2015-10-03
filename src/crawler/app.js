@@ -8,7 +8,7 @@ let Queue = require('./lib/queue'),
 
 logger.activateAll();
 
-function listen(message) {
+function listen(error, message) {
   auction.receiveQuery(message)
     .finally(() => {
       queue.oneListen('auction-query', listen);

@@ -8,44 +8,32 @@ let rewire = require('rewire'),
   Promise = require('bluebird'),
   NotFoundError = require('../../../src/crawler/lib/errors').NotFoundError,
   DatabaseError = require('../../../src/crawler/lib/errors').DatabaseError,
+  ControllerError = require('../../../src/crawler/lib/errors').ControllerError,
   rejecter = null,
   auction = null,
-  database = require('../../../src/crawler/app/helpers/database');
+  database = require('../../../src/crawler/app/helpers/database'),
+  Auction = rewire('../../../src/crawler/app/controllers/auction');
+
 
 require('sinon-as-promised')(Promise);
 
 var should = chai.Should();
 chai.use(chaiAsPromised);
 
-function cleanDb() {
-  return new Promise((resolve) => {
-    var db = database.connection;
-    db.collection('auction').remove((e) => {
-      if (e)
-        console.error(e);
-      db.collection('itemQueue').remove((e) => {
-        if (e)
-          console.error(e);
-        db.collection('item').remove((e) => {
-          if (e)
-            console.error(e);
-          db.collection('server').remove((e) => {
-            if (e)
-              console.error(e);
-            resolve();
-          });
-        });
-      });
-    });
-  });
-}
+require('../../../src/crawler/constants').DbName = 'wowTest';
+var cleanDb = require('../models/model-test').cleanDb;
 
 before((done) => {
   rejecter = Promise.onPossiblyUnhandledRejection;
   Promise.onPossiblyUnhandledRejection(undefined);
 
-  auction = rewire('../../../src/crawler/app/models/auction');
-  database.connect('wowTest').then(cleanDb).then(done)
+  auction = new Auction();
+  auction.init()
+    .then(() => {
+      return database.connect();
+    })
+    .then(cleanDb)
+    .then(done)
     .catch((e) => {
       console.error(done);
       throw new DatabaseError(e);
@@ -62,15 +50,23 @@ afterEach(function(done) {
 
 describe('auction controller', () => {
   describe('real data', () => {
-    it('should succeed after being init', () => {
-      return Promise.reject();
-    });
     describe('processQuery', () => {
       it('should reject when the query is not well formed', () => {
-        return Promise.reject();
+        return auction.receiveQuery({})
+          .should.be.rejectedWith(ControllerError);
       });
       it('should succeed when the query is well formed', () => {
-        return Promise.reject();
+        let backup = Auction.__get__('auction'),
+          fetchAndSaveDump = sinon.stub(backup, 'fetchAndSaveDump');
+
+        fetchAndSaveDump.returns(Promise.resolve());
+
+        return auction.receiveQuery({name: 'grim-batol'})
+          .then(() => {
+            backup.fetchAndSaveDump.restore();
+            console.log(auction.lastError);
+            should.not.exist(auction.lastError);
+          });
       });
     });
   });

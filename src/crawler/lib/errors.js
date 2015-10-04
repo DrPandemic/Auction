@@ -48,11 +48,20 @@ function RedisError(message) {
 RedisError.prototype = Object.create(Error.prototype);
 RedisError.prototype.constructor = RedisError;
 
+function ControllerError(message) {
+  this.message = message;
+  this.name = "ControllerError";
+  Error.captureStackTrace(this, ControllerError);
+}
+ControllerError.prototype = Object.create(Error.prototype);
+ControllerError.prototype.constructor = ControllerError;
+
 module.exports = {
   NotFoundError: NotFoundError,
   MaxRetryError: MaxRetryError,
   ApiError: ApiError,
   MalformedError: MalformedError,
   DatabaseError: DatabaseError,
-  RedisError: RedisError
+  RedisError: RedisError,
+  ControllerError: ControllerError
 };

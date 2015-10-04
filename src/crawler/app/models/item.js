@@ -24,7 +24,7 @@ let database = require('../helpers/database');
 class item {
   /*
     Find one item in the DB.
-    @param {string, string} Item's ID.
+    @param {string} Item's ID.
     @return {object} The item.
     @error {DatabaseError, NotFoundError}
   */
@@ -32,6 +32,27 @@ class item {
     return database.findOne({
       id: itemID
     }, constants.tableNames.item);
+  }
+
+  /*
+    Fetch one item from API.
+    @param {string} Item's ID.
+    @return {object} The item.
+    @error {DatabaseError, ApiError}
+  */
+  static fetch(itemID) {
+    return Promise.reject();
+  }
+
+  /*
+    Looks into DB to see if the item is prensent.
+      If not, fetches it and saves it.
+    @param {string} Item's ID.
+    @return {object} The item.
+    @error {DatabaseError, NotFoundError, ApiError}
+  */
+  static findFetchAndSave(itemID) {
+    return Promise.reject();
   }
 }
 

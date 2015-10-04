@@ -28,6 +28,7 @@ require('sinon-as-promised')(Promise);
 var should = chai.Should();
 chai.use(chaiAsPromised);
 
+require('../../../src/crawler/constants').DbName = 'wowTest';
 var cleanDb = require('./model-test').cleanDb;
 
 before((done) => {
@@ -35,7 +36,7 @@ before((done) => {
   Promise.onPossiblyUnhandledRejection(undefined);
 
   auction = rewire('../../../src/crawler/app/models/auction');
-  database.connect('wowTest').then(cleanDb).then(done)
+  database.connect().then(cleanDb).then(done)
     .catch((e) => {
       console.error(done);
       throw new DatabaseError(e);

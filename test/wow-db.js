@@ -23,7 +23,7 @@ chai.use(chaiAsPromised);
 before(function(done) {
   wowApi = rewire('../src/crawler/lib/wow-api');
   database = rewire('../src/crawler/lib/database');
-  database.init('wowTest').then(function() {
+  database.init().then(function() {
     cleanDb(function() {
       wowDb = rewire('../src/crawler/lib/wow-db');
       require('../src/crawler/logger').verbose = -1;

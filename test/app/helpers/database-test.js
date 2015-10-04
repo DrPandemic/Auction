@@ -17,13 +17,14 @@ require('sinon-as-promised')(Promise);
 var should = chai.Should();
 chai.use(chaiAsPromised);
 
+require('../../../src/crawler/constants').DbName = 'wowTest';
 var cleanDb = require('../models/model-test').cleanDb;
 
 before((done) => {
   rejecter = Promise.onPossiblyUnhandledRejection;
   Promise.onPossiblyUnhandledRejection(undefined);
 
-  database.connect('wowTest').then(cleanDb).then(done)
+  database.connect().then(cleanDb).then(done)
     .catch((e) => {
       console.error(done);
       throw new DatabaseError(e);
@@ -166,7 +167,7 @@ describe('database', () => {
               broke = true;
           }).finally(() => {
             broke.should.be.true;
-            return database.connect('wowTest');
+            return database.connect();
           });
       });
 

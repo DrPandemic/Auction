@@ -1,7 +1,7 @@
 "use strict";
 
 let database = require('../../../src/crawler/app/helpers/database'),
-  collectionsToClean = ['auction, itemQueue', 'item', 'server', 'test'],
+  collectionsToClean = ['auction', 'itemQueue', 'item', 'server', 'test'],
   async = require('async');
 
 module.exports = {
@@ -9,7 +9,7 @@ module.exports = {
     return new Promise((resolve) => {
       let db = database.connection;
       async.eachSeries(collectionsToClean, (item, cb)=> {
-        db.collection(item).remove(cb);
+        db.collection(item).remove({}, null, cb);
       }, resolve);
     });
   },

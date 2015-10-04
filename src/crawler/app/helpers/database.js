@@ -22,7 +22,7 @@ let DatabaseError = require('../../lib/errors').DatabaseError,
 */
 function connect(name) {
   return new Promise(function(resolve, reject) {
-    var url = constants.mongoConnectionString + (name || 'wow');
+    var url = constants.mongoConnectionString + (name || constants.DbName);
     var opt = {
       promiseLibrary: Promise
     };

@@ -144,6 +144,7 @@ class auction {
     Query the API for an array of auctions.
     @param {string, ?number} Realm name, number of retries.
     @return {array} An array of auctions.
+    @error {ApiError}
   */
   static fetchDump(server, retry) {
     return queryWithRetry(server, retry || 0);

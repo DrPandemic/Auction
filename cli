@@ -36,7 +36,7 @@ require('cli').withInput((line, newline, eof) => {
   switch (args[0]) {
     case baseFunctions[0].name:
       queue.send('auction-query', {
-        name: args[1]
+        as: args[1]
       });
       break;
     default:

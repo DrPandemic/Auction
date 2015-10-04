@@ -2,13 +2,15 @@
 
 let states = require('../../constants').controllerStates,
   Promise = require('bluebird'),
-  logger = require('../../sLogger');
+  logger = require('../../sLogger'),
+  ControllerError = require('../../lib/errors').ControllerError;
 
 class Controller {
   constructor() {
     this.state = states.busy;
     this.dying = false;
     this.forceDying = false;
+    this.lastError = undefined;
   }
   init() {
     return Promise.resolve();
@@ -41,10 +43,18 @@ class Controller {
     });
   }
 
-  done() {
+  done(error) {
+    this.lastError = error;
     logger.log('worker', 'Task done');
     if (!this.dying && !this.forceDying)
       this.state = states.ready;
+
+    if (error) {
+      logger.log('error', error);
+      return Promise.reject(new ControllerError(error));
+    }
+
+    return Promise.resolve();
   }
 
   /*

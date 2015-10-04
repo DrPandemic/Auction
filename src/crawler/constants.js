@@ -28,5 +28,6 @@ module.exports = {
     ready: 'ready',
     busy: 'busy'
   },
-  maxRetry: 5
+  maxRetry: 5,
+  DbName: 'wow'
 };

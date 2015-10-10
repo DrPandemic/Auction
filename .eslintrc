@@ -1,0 +1,14 @@
+{
+  "env": {
+    "browser": true,
+    "node": true,
+    "mocha": true,
+    "es6": true
+  },
+  "rules": {
+    "eqeqeq": 0,
+    "curly": 2,
+    "quotes": [1, "single", "avoid-escape"],
+    "indent": [2, 2]
+  }
+}

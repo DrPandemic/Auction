@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 let constants = require('../../constants'),
   initialized = false,
@@ -45,10 +45,12 @@ function connect(name) {
 */
 function ensureDB() {
   return new Promise(function(resolve, reject) {
-    if (!initialized || !mongoDb)
-      reject(new DatabaseError("There was an error with the DB connection"));
-    else
+    if (!initialized || !mongoDb) {
+      reject(new DatabaseError('There was an error with the DB connection'));
+    }
+    else {
       resolve(mongoDb);
+    }
   });
 }
 
@@ -62,18 +64,21 @@ function ensureIndex() {
       let collection = mongoDb.collection(index.collection);
 
       collection.ensureIndex(index.index, index.options, (err, res) => {
-        if (err)
+        if (err) {
           cb(new DatabaseError(err));
+        }
         else {
           logger.log('db', index.message + res);
           cb();
         }
       });
     }, (err) => {
-      if (err)
+      if (err) {
         reject(err);
-      else
+      }
+      else {
         resolve();
+      }
     });
   });
 }
@@ -97,8 +102,9 @@ function insert(document, collectionName) {
         // Duplicate errors
         if (err && !(err.code === 11000 || err.code === 11001)) {
           reject(new DatabaseError(err));
-        } else
+        } else {
           resolve(document);
+        }
       });
     });
   });
@@ -116,12 +122,15 @@ function findOne(selector, collectionName) {
       logger.log('db', 'Finding one from ' + collectionName);
       var collection = mongoDb.collection(collectionName);
       collection.findOne(selector, function(err, result) {
-        if (err)
+        if (err) {
           reject(new DatabaseError(err));
-        else if (!result)
-          reject(new NotFoundError("Wasn't able to find a item in " + collectionName));
-        else
+        }
+        else if (!result) {
+          reject(new NotFoundError(`Wasn\'t able to find a item in ${collectionName}`));
+        }
+        else {
           resolve(result);
+        }
       });
     });
   });

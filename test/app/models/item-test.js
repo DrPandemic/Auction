@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // Packages
 let rewire = require('rewire'),
@@ -99,25 +99,78 @@ describe('item', () => {
 
   describe('findFetchAndSave', () => {
     it('should succeed if the item is already present in the db', () => {
-      let stub = sinon.stub(item, 'find');
-      stub.resolves(require('../../data/pet-cage'));
+      sinon.stub(item, 'find')
+        .resolves(require('../../data/pet-cage'));
+
+      sinon.stub(item, 'fetch')
+        .rejects(new Error());
 
       return item.findFetchAndSave(82800)
         .finally(function(res) {
           item.find.restore();
+          item.fetch.restore();
         }).should.become(require('../../data/pet-cage'));
     });
     it('should saves the item if it succeed', () => {
-      return Promise.reject();
+      let stub = sinon.stub(item.__get__('database'), 'insert');
+      stub.resolves(require('../../data/pet-cage'));
+
+      return item.findFetchAndSave(82800)
+        .then((result) => {
+          stub.called.should.be.true;
+          result.should.be.equal(require('../../data/pet-cage'));
+        }).finally(() => {
+          item.__get__('database').insert.restore();
+        });
     });
     it('should ask the API if not present in the DB', () => {
-      return Promise.reject();
+      let stub = sinon.stub(item, 'fetch')
+        .resolves(require('../../data/pet-cage'));
+      sinon.stub(item, 'find')
+        .rejects(new NotFoundError());
+
+      return item.findFetchAndSave(82800)
+        .then((result) => {
+          stub.called.should.be.true;
+          result.should.be.equal(require('../../data/pet-cage'));
+        })
+        .finally(() => {
+          item.fetch.restore();
+          item.find.restore();
+        });
+    });
+    it('shouldn\'t ask the API if present in the DB', () => {
+      let stub = sinon.stub(item, 'fetch');
+      sinon.stub(item, 'find')
+        .resolves(require('../../data/pet-cage'));
+
+      return item.findFetchAndSave(82800)
+        .then((result) => {
+          stub.called.should.be.false;
+          result.should.be.equal(require('../../data/pet-cage'));
+        })
+        .finally(() => {
+          item.fetch.restore();
+          item.find.restore();
+        });
     });
     it('should give an error when receive other errors', () => {
-      return Promise.reject();
+      sinon.stub(item, 'find')
+        .rejects(new DatabaseError());
+      return item.findFetchAndSave(82800)
+        .finally(() => {
+          item.find.restore();
+        })
+        .should.be.rejectedWith(DatabaseError);
     });
     it('should give an error if it was unable to save the object', () => {
-      return Promise.reject();
+      sinon.stub(item.__get__('database'), 'insert')
+        .rejects(new DatabaseError());
+      return item.findFetchAndSave(82800)
+        .finally(() => {
+          item.__get__('database').insert.restore();
+        })
+        .should.be.rejectedWith(DatabaseError);
     });
   });
 });
